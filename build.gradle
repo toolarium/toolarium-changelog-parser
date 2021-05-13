@@ -4,7 +4,18 @@
  * Copyright by toolarium-changelog-parser, all rights reserved.
  * MIT License: https://mit-license.org
  */
+plugins {
+  id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+
 apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/master/gradle/common.gradle"
+
+
+/***************************************************************************************
+ * define the main class name
+ ***************************************************************************************/
+mainClassName = "com.github.toolarium.changelog.ChangelogMain"
 
 
 /****************************************************************************************
@@ -14,10 +25,11 @@ dependencies {
     // see https://docs.gradle.org/current/userguide/java_library_plugin.html
 
     // utilities
-    //implementation "net.sf.jptools:jptools:1.7.6"
-    //implementation "net.sf.jptools:jptools:1.7.6:slf4j-redirect"
+    implementation "net.sf.jptools:jptools:1.7.7-SNAPSHOT"
+    implementation "net.sf.jptools:jptools:1.7.7-SNAPSHOT:slf4j-adapter"
 
     // logging
     implementation 'org.slf4j:slf4j-api:1.7.30'
-    testRuntimeOnly 'ch.qos.logback:logback-classic:1.2.3'
+    //testRuntimeOnly 'ch.qos.logback:logback-classic:1.2.3'
+    testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
 }
