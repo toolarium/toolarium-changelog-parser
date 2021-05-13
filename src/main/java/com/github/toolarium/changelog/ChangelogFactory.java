@@ -54,37 +54,35 @@ public final class ChangelogFactory {
     /**
      * Parse a change-log
      *
-     * @param changelogConfiguration the change-log configuration
      * @param filename the filename
      * @return the parser result
      * @throws IOException In case of an I/O error to read the file
      */
-    public ChangelogParseResult parse(ChangelogConfig changelogConfiguration, Path filename) throws IOException {
-        return new ChangelogParser(changelogConfiguration).parse(filename);
+    public ChangelogParseResult parse(Path filename) throws IOException {
+        return new ChangelogParser().parse(filename);
     }
 
     
     /**
      * Parse a change-log
      *
-     * @param changelogConfiguration the change-log configuration
      * @param content the content to parse
      * @return the parser result
      * @throws IOException In case of an I/O error to read the file
      */
-    public ChangelogParseResult parse(ChangelogConfig changelogConfiguration, String content) throws IOException {
+    public ChangelogParseResult parse(String content) throws IOException {
         if (content == null) {
             throw new IOException("Invalid content!");
         }
         
-        return new ChangelogParser(changelogConfiguration).parseContent(new ByteArray(content));
+        return new ChangelogParser().parseContent(new ByteArray(content));
     }
 
 
     /**
      * Validate a change-log
      *
-     * @param changelogConfiguration the change-log configuration
+     * @param changelogConfiguration the change-log validation configuration
      * @param filename the filename
      * @throws IOException In case of an I/O error to read the file
      * @throws ValidationException In case of a validation error. It includes also parsing errors.
@@ -97,7 +95,7 @@ public final class ChangelogFactory {
     /**
      * Validate a change-log
      *
-     * @param changelogConfiguration the change-log configuration
+     * @param changelogConfiguration the change-log validation configuration
      * @param filename the filename
      * @param projectName the reference project name or null
      * @param description the reference description or null
@@ -113,7 +111,7 @@ public final class ChangelogFactory {
     /**
      * Validate a change-log
      *
-     * @param changelogConfiguration the change-log configuration
+     * @param changelogConfiguration the change-log validation configuration
      * @param changelog the change-log
      * @throws IOException In case of an I/O error to read the file
      * @throws ValidationException In case of a validation error
@@ -126,7 +124,7 @@ public final class ChangelogFactory {
     /**
      * Validate a change-log
      *
-     * @param changelogConfiguration the change-log configuration
+     * @param changelogConfiguration the change-log validation configuration
      * @param changelog the change-log
      * @param projectName the reference project name or null
      * @param description the reference description or null
@@ -148,7 +146,7 @@ public final class ChangelogFactory {
      * @throws IOException In case of an I/O error to read the file
      */
     public String format(ChangelogConfig changelogConfiguration, Path filename) throws IOException {
-        return format(changelogConfiguration, parse(changelogConfiguration, filename).getChangelog());
+        return format(changelogConfiguration, parse(filename).getChangelog());
     }
 
 

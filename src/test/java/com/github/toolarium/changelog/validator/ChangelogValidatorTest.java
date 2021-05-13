@@ -44,17 +44,19 @@ public class ChangelogValidatorTest {
             ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-invalid.md"), "<project-name>", "Comment", "1.1.1");
         } catch (ValidationException e) {
             //ystem.err.println("==>" + e.getValidationErrorList());
-            assertEquals(10, e.getValidationErrorList().size());
+            assertEquals(12, e.getValidationErrorList().size());
             assertEquals("- Header: The name don't correspond to [<project-name>], current [<project-name]!", e.getValidationErrorList().get(0));
             assertEquals("- Header: The don't correspond to [Comment]!", e.getValidationErrorList().get(1));
             assertEquals("- 1.2.0: Newer version in than 1.1.1 in changelog found!", e.getValidationErrorList().get(2));
             assertEquals("- 1.2.0: Invalid relase date [2021-04-32]", e.getValidationErrorList().get(3));
             assertEquals("- 1.2.0: Invalid changelog change type: Removet", e.getValidationErrorList().get(4));
             assertEquals("- 1.2.0: Invalid changelog change type: Addeded", e.getValidationErrorList().get(5));
-            assertEquals("- 1.2.0 / FIXED: Empty comment list!", e.getValidationErrorList().get(6));
-            assertEquals("- 1.1.1: Could not find version 1.1.1!", e.getValidationErrorList().get(7));
-            assertEquals("- 1.1.0: The version 1.1.1 should be referenced as first entry.", e.getValidationErrorList().get(8));
-            assertEquals("- 1.1.0: Not valid sorted!", e.getValidationErrorList().get(9));
+            assertEquals("- 1.2.0 / null: Link is not allowed in comment: [New UI wizard introduced: http://url.com/dd]!", e.getValidationErrorList().get(6));
+            assertEquals("- 1.2.0 / null: Id is not allowed in comment: [2FA introduced: AB-234]!", e.getValidationErrorList().get(7));
+            assertEquals("- 1.2.0 / FIXED: Empty comment list!", e.getValidationErrorList().get(8));
+            assertEquals("- 1.1.1: Could not find version 1.1.1!", e.getValidationErrorList().get(9));
+            assertEquals("- 1.1.0: The version 1.1.1 should be referenced as first entry.", e.getValidationErrorList().get(10));
+            assertEquals("- 1.1.0: Not valid sorted!", e.getValidationErrorList().get(11));
         }
     }
 }

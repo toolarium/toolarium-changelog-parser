@@ -34,7 +34,7 @@ public abstract class AbstractChangelogParserTest {
      */
     protected Changelog assertChangelogFile(Path filename, List<String> errorMessageList) throws IOException {
         ChangelogConfig changelogConfig = new ChangelogConfig();
-        return assertChangelog(changelogConfig, readContent(filename), parseFile(changelogConfig, filename), errorMessageList);
+        return assertChangelog(changelogConfig, readContent(filename), parseFile(filename), errorMessageList);
     }
 
     
@@ -48,7 +48,7 @@ public abstract class AbstractChangelogParserTest {
      * @throws IOException In case of I/O error
      */
     protected Changelog assertChangelogFile(ChangelogConfig changelogConfig, Path filename, List<String> errorMessageList) throws IOException {
-        return assertChangelog(changelogConfig, readContent(filename), parseFile(changelogConfig, filename), errorMessageList);
+        return assertChangelog(changelogConfig, readContent(filename), parseFile(filename), errorMessageList);
     }
 
     
@@ -62,7 +62,7 @@ public abstract class AbstractChangelogParserTest {
      * @throws IOException In case of I/O error
      */
     protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, List<String> errorMessageList) throws IOException {
-        return assertChangelog(changelogConfig, content, ChangelogFactory.getInstance().parse(changelogConfig, content), errorMessageList);
+        return assertChangelog(changelogConfig, content, ChangelogFactory.getInstance().parse(content), errorMessageList);
     }
     
     
@@ -106,12 +106,11 @@ public abstract class AbstractChangelogParserTest {
      * Parse a change-log
      * 
      * @param filename the filename
-     * @param changelogConfig the change-log configuration
      * @return the parsed change-log
      * @throws IOException In case of an I/O error
      */
-    protected ChangelogParseResult parseFile(ChangelogConfig changelogConfig, Path filename) throws IOException {
-        return ChangelogFactory.getInstance().parse(changelogConfig, filename);
+    protected ChangelogParseResult parseFile(Path filename) throws IOException {
+        return ChangelogFactory.getInstance().parse(filename);
     }
 
         

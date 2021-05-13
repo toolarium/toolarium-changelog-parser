@@ -40,11 +40,11 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      */
     @Test void testEmptyChangelog() throws IOException {
         assertThrows(IOException.class, () -> {
-            ChangelogFactory.getInstance().parse(new ChangelogConfig(), (Path) null);
+            ChangelogFactory.getInstance().parse((Path) null);
         });
 
-        assertNull(ChangelogFactory.getInstance().parse(new ChangelogConfig(), "").getChangelog());
-        assertNull(ChangelogFactory.getInstance().parse(new ChangelogConfig(), "").getErrorMessageList());
+        assertNull(ChangelogFactory.getInstance().parse("").getChangelog());
+        assertNull(ChangelogFactory.getInstance().parse("").getErrorMessageList());
     }
 
     
@@ -54,8 +54,8 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws IOException In case of an I/O exception
      */
     @Test public void testInvalidChangelog() throws IOException {
-        assertEquals("", ChangelogFactory.getInstance().parse(new ChangelogConfig(), "Test").getChangelog().getProjectName());
-        assertEquals("[Invalid empty changelog name!]", ChangelogFactory.getInstance().parse(new ChangelogConfig(), "Test").getErrorMessageList().toString());
+        assertEquals("", ChangelogFactory.getInstance().parse("Test").getChangelog().getProjectName());
+        assertEquals("[Invalid empty changelog name!]", ChangelogFactory.getInstance().parse("Test").getErrorMessageList().toString());
     }
 
     
@@ -65,8 +65,8 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws IOException In case of an I/O exception
      */
     @Test public void testNameOnlyChangelog() throws IOException {
-        assertEquals("Test", ChangelogFactory.getInstance().parse(new ChangelogConfig(), "#Test").getChangelog().getProjectName());
-        assertEquals("Test", ChangelogFactory.getInstance().parse(new ChangelogConfig(), "#    Test").getChangelog().getProjectName());
+        assertEquals("Test", ChangelogFactory.getInstance().parse("#Test").getChangelog().getProjectName());
+        assertEquals("Test", ChangelogFactory.getInstance().parse("#    Test").getChangelog().getProjectName());
     }
 
     
@@ -198,7 +198,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      */
     @Test public void testUnsupportedUnreleased() throws IOException, ParseException {
         Path filename = Paths.get("src", "test", "resources", "CHANGELOG-valid.md");
-        ChangelogParseResult changelogParseResult = parseFile(new ChangelogConfig('-', '-', false, false, false), filename);
+        ChangelogParseResult changelogParseResult = parseFile(filename);
         assertTrue(changelogParseResult.getErrorMessageList().isEmpty(), "Expected no errors: " + changelogParseResult.getErrorMessageList());
 
         Changelog changelog = changelogParseResult.getChangelog();

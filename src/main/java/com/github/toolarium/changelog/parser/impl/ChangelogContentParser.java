@@ -5,7 +5,6 @@
  */
 package com.github.toolarium.changelog.parser.impl;
 
-import com.github.toolarium.changelog.config.ChangelogConfig;
 import java.util.ArrayList;
 import java.util.List;
 import jptools.parser.EOLException;
@@ -31,29 +30,15 @@ public class ChangelogContentParser extends StringParser {
     private StopBytes descriptionStopBytes = new StopBytes();
 
     private char sectionCharacter;
-    private String itemSeparator;
-    private byte headerSeparator;
 
     
     /**
      * Constructor for ChangelogParser
      */
     public ChangelogContentParser() {
-        this(new ChangelogConfig());
-    }
-
-    
-    /**
-     * Constructor for ChangelogParser
-     * 
-     * @param changelogConfig the change-log configuration for formatting
-     */
-    public ChangelogContentParser(ChangelogConfig changelogConfig) {
         super();
 
-        this.sectionCharacter = changelogConfig.getSectionCharacter();
-        this.itemSeparator = "" + changelogConfig.getItemSeparator();
-        this.headerSeparator = (byte) changelogConfig.getHeaderSeparator();
+        this.sectionCharacter = '#';
 
         headerStopBytes.addStopBytes(" ");
         headerStopBytes.addStopBytes("" + NEWLINE);
@@ -141,11 +126,16 @@ public class ChangelogContentParser extends StringParser {
     
     /**
      * Read the header separator.
+     * 
+     * @return the read separator 
      */
-    public void readHeaderSeparator() {
+    public Character readHeaderSeparator() {
+        Character result = null;
+        
         try {
             readBlanks();
-            if (!isEOL() && getCurrentByte() == headerSeparator) {
+            if (!isEOL() && (getCurrentByte() == (byte)'-' || getCurrentByte() == (byte)'/')) {
+                result = (char)getCurrentByte();
                 readNext();
             }
 
@@ -154,6 +144,8 @@ public class ChangelogContentParser extends StringParser {
         } catch (ParseException e) {
             // NOP
         }
+        
+        return result;
     }
 
     
@@ -213,7 +205,7 @@ public class ChangelogContentParser extends StringParser {
                 String currentItem = "";
                 for (int i = 0; i < itemSplit.length; i++) {
                     String item = itemSplit[i];
-                    if (item.startsWith(itemSeparator)) {
+                    if (item.startsWith("-") || item.startsWith("*")) {
                         if (!currentItem.isEmpty()) {
                             result.add(currentItem);
                         }

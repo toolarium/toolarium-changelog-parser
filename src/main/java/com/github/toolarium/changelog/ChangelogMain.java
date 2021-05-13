@@ -45,8 +45,7 @@ public class ChangelogMain extends AbstractApplication {
      * @param args The arguments to run the main method.
      */
     public static void main(String[] args) {
-        List<String> baseArray = new ArrayList<>(Arrays.asList(new String[] {"-type", ChangelogMain.class.getName(),
-                                                                             /*"-jptoolsConfig", "jptools.properties"*/ }));
+        List<String> baseArray = new ArrayList<>(Arrays.asList(new String[] {"-type", ChangelogMain.class.getName() }));
         
         // add all arguments
         baseArray.addAll(Arrays.asList(args));
@@ -84,7 +83,7 @@ public class ChangelogMain extends AbstractApplication {
      */
     @Override
     protected String getAdditionalVersionText() {
-        return "The changelog validator.";
+        return "The changelog validator.\n";
     }
 
     
@@ -110,9 +109,17 @@ public class ChangelogMain extends AbstractApplication {
         }
 
         try {
+            if (filename == null || filename.isBlank()) {
+                logToConsole("Could not find the changelog file.", true);
+                printHelp(false);
+                return;
+            }
+            
+            logToConsole("Validate file " + filename + "...", true);
             ChangelogFactory.getInstance().validate(changelogConfig, Paths.get(filename));
+            
         } catch (IOException e) {
-            logConsoleToLogger("Could not read file " + filename + ": " + e.getMessage());
+            logToConsole("Could not read file " + filename + ": " + e.getMessage(), true);
         } catch (ValidationException e) {
             StringBuilder outputInfo = new StringBuilder();
             for (String error : e.getValidationErrorList()) {
@@ -120,7 +127,7 @@ public class ChangelogMain extends AbstractApplication {
                 outputInfo.append(error);
             }
             
-            logConsoleToLogger("Validation errors found in file " + filename + ": " + outputInfo);
+            logToConsole("Validation errors found in file " + filename + ": " + outputInfo, true);
         }
     }
 

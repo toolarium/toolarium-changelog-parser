@@ -52,8 +52,8 @@ public class ChangelogConfig implements Serializable {
     /**
      * Constructor for ChangelogConfig
      * 
-     * @param headerSeparator the header separator
-     * @param itemSeparator the item separator
+     * @param headerSeparator the header separator to validate strict; otherwise null
+     * @param itemSeparator the item separator to validate strict; otherwise null
      * @param supportUnreleased true to support unreleased
      * @param supportBracketsAroundVersion true to support brackets around version
      * @param supportReleaseInfo the release information

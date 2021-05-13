@@ -78,7 +78,7 @@ public class ChangelogValidator {
         List<String> errorMessageList = new ArrayList<String>();
 
         try {
-            ChangelogParseResult result = ChangelogFactory.getInstance().parse(changelogConfig, filename);
+            ChangelogParseResult result = ChangelogFactory.getInstance().parse(filename);
             addList(errorMessageList, result.getErrorMessageList());
 
             validate(result.getChangelog(), projectName, description, version);
@@ -357,15 +357,16 @@ public class ChangelogValidator {
         Set<ChangelogChangeType> changeLogChangeTypeSet = new HashSet<>(Arrays.asList(ChangelogChangeType.values()));
         for (ChangelogSection section : sectionList) {
             if (section.getChangeType() == null) {
+                
                 // addError( errorMessageList, "" + releaseVersion, "Duplicate type " + changeType + "!" );
             } else if (!changeLogChangeTypeSet.remove(section.getChangeType())) {
                 addError(errorMessageList, "" + releaseVersion, "Duplicate type " + section.getChangeType().getTypeName() + "!");
             } else if (section.getChangeCommentList() == null || section.getChangeCommentList().isEmpty()) {
                 addError(errorMessageList, "" + releaseVersion + " / " + section.getChangeType(), "Empty comment list!");
-            } else {
-                for (String comment : section.getChangeCommentList()) {
-                    addList(errorMessageList, validateText("" + releaseVersion + " / " + section.getChangeType(), comment));
-                }
+            }
+                
+            for (String comment : section.getChangeCommentList()) {
+                addList(errorMessageList, validateText("" + releaseVersion + " / " + section.getChangeType(), comment));
             }
         }
 

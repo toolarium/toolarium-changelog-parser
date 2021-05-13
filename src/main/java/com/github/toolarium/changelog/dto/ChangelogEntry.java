@@ -23,6 +23,7 @@ import jptools.util.version.Version;
 public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable {
     private static final long serialVersionUID = 23424823094L;
     private Version releaseVersion;
+    private boolean hasBracketsAroundVersion;
     private LocalDate releaseDate;
     private String releaseDescription;
     private String releaseInfo;
@@ -107,7 +108,7 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
             return;
         }
 
-        String version = inputVersion.trim();
+        String version = readBracketExpression(inputVersion.trim());
         if ("Unreleased".equalsIgnoreCase(version)) {
             isReleased = false;
             return;
@@ -121,7 +122,53 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
             throw new ParseException("Invalid version format: " + inputVersion);
         }
     }
+
     
+    /**
+     * Get has brackets around version
+     *
+     * @return true if it has brackets around version
+     */
+    public boolean hasBracketsAroundVersion() {
+        return hasBracketsAroundVersion;
+    }
+
+
+    /**
+     * Set has brackets around version
+     *
+     * @param hasBracketsAroundVersion has brackets around version
+     */
+    public void setHasBracketsAroundVersion(boolean hasBracketsAroundVersion) {
+        this.hasBracketsAroundVersion = hasBracketsAroundVersion;
+    }
+
+
+    /**
+     * Read bracket expression
+     * 
+     * @param input the input
+     * @return the prepared input
+     */
+    protected String readBracketExpression(String input) {
+        if (input == null) {
+            return input;
+        }
+        
+        String result = input.trim();
+        if (!result.isEmpty() && result.startsWith("[")) {
+            result = result.substring(1);
+            hasBracketsAroundVersion = true;
+        }
+        
+        if (!result.isEmpty() && result.endsWith("]")) {
+            result = result.substring(0, result.length() - 1);
+            hasBracketsAroundVersion = true;
+        }
+        
+        return result;
+    }
+
     
     /**
      * Get the release date 

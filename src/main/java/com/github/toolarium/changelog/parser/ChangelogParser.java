@@ -5,7 +5,6 @@
  */
 package com.github.toolarium.changelog.parser;
 
-import com.github.toolarium.changelog.config.ChangelogConfig;
 import com.github.toolarium.changelog.dto.Changelog;
 import com.github.toolarium.changelog.dto.ChangelogChangeType;
 import com.github.toolarium.changelog.dto.ChangelogEntry;
@@ -29,24 +28,10 @@ import jptools.util.StringHelper;
  * @author patrick
  */
 public class ChangelogParser {
-    private ChangelogConfig changelogConfig;
-    
-    
     /**
      * Constructor for ChangelogParser
      */
     public ChangelogParser() {
-        this(new ChangelogConfig());
-    }
-    
-    
-    /**
-     * Constructor for ChangelogParser
-     * 
-     * @param changelogConfig the change-log configuration for formatting
-     */
-    public ChangelogParser(ChangelogConfig changelogConfig) {
-        this.changelogConfig = changelogConfig;
     }
     
     
@@ -93,7 +78,7 @@ public class ChangelogParser {
             return new ChangelogParseResult();
         }
 
-        ChangelogContentParser parser = new ChangelogContentParser(changelogConfig);
+        ChangelogContentParser parser = new ChangelogContentParser();
         parser.init(inputContent);
 
         List<String> errorMessageList = new ArrayList<String>();
@@ -162,7 +147,7 @@ public class ChangelogParser {
             ChangelogEntry changelogEntry = new ChangelogEntry();
 
             // read version number
-            String releaseVersion = readBracketExpression(errorMessageList, "relase version", parser.readVersion());
+            String releaseVersion = parser.readVersion();
             try {
                 changelogEntry.setReleaseVersion(releaseVersion);
             } catch (ParseException ev) {
@@ -170,7 +155,7 @@ public class ChangelogParser {
             }
 
             // read header separator
-            parser.readHeaderSeparator();
+            Character separator = parser.readHeaderSeparator();
 
             // read date
             String releaseDate = parser.readDate();
@@ -181,7 +166,10 @@ public class ChangelogParser {
             }
 
             // read header separator
-            parser.readHeaderSeparator();
+            Character dateSeparator = parser.readHeaderSeparator();
+            if (separator != null && dateSeparator != null && !separator.equals(dateSeparator)) {
+                addError(errorMessageList, releaseVersion, "Found mixed separator character in version section " + separator + " and " + dateSeparator + ".");
+            }
 
             // read header trailer
             String releaseInfo = parser.readHeaderEnd();
@@ -222,6 +210,7 @@ public class ChangelogParser {
      */
     protected List<String> readChangelogSectionList(ChangelogContentParser parser, ChangelogEntry changelogEntry) {
         List<String> errorMessageList = new ArrayList<String>();
+        
         if (parser == null || changelogEntry == null) {
             return errorMessageList;
         }
@@ -268,14 +257,13 @@ public class ChangelogParser {
         }
         
         String itemContent = parser.readChangelogText();
-
         if (itemContent != null && !itemContent.isEmpty()) {
             String[] itemSplit = itemContent.split("" + ChangelogContentParser.NEWLINE);
             if (itemSplit != null) {
                 String currentItem = "";
                 for (int i = 0; i < itemSplit.length; i++) {
                     String item = itemSplit[i];
-                    if (item.startsWith("" + changelogConfig.getItemSeparator())) {
+                    if (item.startsWith("-") || item.startsWith("*")) {
                         String comment = item.substring(1).stripLeading();
                         if (comment.trim().isEmpty()) {
                             addError(errorMessageList, "" + changelogEntry.getReleaseVersion() + " / " + section.getChangeType().getTypeName(), "Invalid empty comment!");
@@ -302,50 +290,6 @@ public class ChangelogParser {
         }
 
         return errorMessageList;
-    }
-
-    
-    /**
-     * Read bracket expression
-     * 
-     * @param errorMessageList the error list
-     * @param sectionName the section name
-     * @param input the input
-     * @return the prepared input
-     */
-    protected String readBracketExpression(List<String> errorMessageList, String sectionName, String input) {
-        if (input == null) {
-            return input;
-        }
-        
-        String result = input.trim();
-        if (changelogConfig.isSupportBracketsAroundVersion()) {
-            if (!result.isEmpty() && result.startsWith("[")) {
-                result = result.substring(1);
-            } else {
-                addError(errorMessageList, result, "Invalid " + sectionName + " format " + result + ", expected to start with [");
-            }
-            
-            if (!result.isEmpty() && result.endsWith("]")) {
-                result = result.substring(0, result.length() - 1);
-            } else {
-                addError(errorMessageList, result, "Invalid " + sectionName + " format " + result + ", expected to end with ]");
-            }
-        } else if (result.startsWith("[") || result.endsWith("[")) {
-            addError(errorMessageList, result, "Invalid " + sectionName + " format " + result + ", expected no brackets.");
-        }
-        
-        return result;
-    }
-
-    
-    /**
-     * Get the change-log configuration 
-     *
-     * @return the change-log configuration
-     */
-    protected ChangelogConfig getChangelogConfig() {
-        return changelogConfig;
     }
 
     
