@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/github/license/toolarium/toolarium-changelog-parser)](https://github.com/toolarium/toolarium-changelog-parser/blob/master/LICENSE)
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.toolarium/toolarium-changelog-parser/0.8.0)](https://search.maven.org/artifact/com.github.toolarium/toolarium-changelog-parser/0.8.0/jar)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.toolarium/toolarium-changelog-parser/0.8.1)](https://search.maven.org/artifact/com.github.toolarium/toolarium-changelog-parser/0.8.1/jar)
 [![javadoc](https://javadoc.io/badge2/com.github.toolarium/toolarium-changelog-parser/javadoc.svg)](https://javadoc.io/doc/com.github.toolarium/toolarium-changelog-parser)
 
 
@@ -17,11 +17,11 @@ The project implements a compatible [keep a changelog](https://keepachangelog.co
 
 ## Use it
 
-To us this in your project, include the dependency (by now the newest version is **0.8.0**):
+To us this in your project, include the dependency (by now the newest version is **0.8.1**):
 
 ### CMD:
 
-- Download newest [toolarium-changelog-parser-x.y.z-runner.jar](https://repo1.maven.org/maven2/com/github/toolarium/toolarium-changelog-parser/0.8.0/toolarium-changelog-parser-0.8.0-runner.jar)
+- Download newest [toolarium-changelog-parser-x.y.z-runner.jar](https://repo1.maven.org/maven2/com/github/toolarium/toolarium-changelog-parser/0.8.1/toolarium-changelog-parser-0.8.1-runner.jar)
 - Call: ```java -jar toolarium-changelog-parser-x.y.z-runner.jar --validate CHANGELOG.md```
 
 
