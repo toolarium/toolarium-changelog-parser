@@ -5,12 +5,12 @@
  */
 package com.github.toolarium.changelog.dto;
 
+import com.github.toolarium.changelog.ChangelogFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import jptools.parser.ParseException;
-import jptools.util.version.Version;
+
 
 /**
  * The change-log
@@ -85,11 +85,12 @@ public class Changelog implements Serializable {
      * @return the entry or null
      * @throws ParseException In case the input version is not in a proper format
      */
-    public ChangelogEntry getEntry(String version) throws ParseException {
+    public ChangelogEntry getEntry(String version)  {
         if (entries != null) {
-            Version searchVersion = null;
+            
+            ChangelogReleaseVersion searchVersion = null;
             if (version != null && !"Unreleased".equals(version)) {
-                searchVersion = new Version(version);
+                searchVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion(version); 
             }
             
             for (ChangelogEntry entry : entries) {

@@ -15,7 +15,7 @@ import jptools.util.ByteArray;
 
 
 /**
- * 
+ * Defines the change-log content parser.
  * 
  * @author patrick
  */

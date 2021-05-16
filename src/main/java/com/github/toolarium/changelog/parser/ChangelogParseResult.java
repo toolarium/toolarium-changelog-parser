@@ -6,20 +6,28 @@
 package com.github.toolarium.changelog.parser;
 
 import com.github.toolarium.changelog.dto.Changelog;
+import com.github.toolarium.changelog.dto.ChangelogErrorList;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * The changelog parse result.
+ * The change-log parse result.
  * 
  * @author patrick
  */
 public class ChangelogParseResult implements Serializable {
     private static final long serialVersionUID = 1589437584385437895L;
     private Changelog changelog;
-    private List<String> errorMessageList;
+    private ChangelogErrorList changelogErrorList;
+
     
+    /**
+     * Constructor for ChangelogParseResult
+     */
+    public ChangelogParseResult() {
+        changelog = null;
+        changelogErrorList = new ChangelogErrorList();
+    }
     
     /**
      * Get the change-log
@@ -42,22 +50,22 @@ public class ChangelogParseResult implements Serializable {
 
 
     /**
-     * Get the error message list
+     * Get the error list
      * 
-     * @return the error message list
+     * @return the error list
      */
-    public List<String> getErrorMessageList() {
-        return errorMessageList;
+    public ChangelogErrorList getChangelogErrorList() {
+        return changelogErrorList;
     }
 
     
     /**
      * Set the error message list
      * 
-     * @param errorMessageList the error message list
+     * @param changelogErrorList the error list
      */
-    public void setErrorMessageList(List<String> errorMessageList) {
-        this.errorMessageList = errorMessageList;
+    public void setChangelogErrorList(ChangelogErrorList changelogErrorList) {
+        this.changelogErrorList = changelogErrorList;
     }
 
 
@@ -66,7 +74,7 @@ public class ChangelogParseResult implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(changelog, errorMessageList);
+        return Objects.hash(changelog, changelogErrorList);
     }
 
 
@@ -85,7 +93,7 @@ public class ChangelogParseResult implements Serializable {
             return false;
         }
         ChangelogParseResult other = (ChangelogParseResult) obj;
-        return Objects.equals(changelog, other.changelog) && Objects.equals(errorMessageList, other.errorMessageList);
+        return Objects.equals(changelog, other.changelog) && Objects.equals(changelogErrorList, other.changelogErrorList);
     }
 
 
@@ -94,6 +102,6 @@ public class ChangelogParseResult implements Serializable {
      */
     @Override
     public String toString() {
-        return "ChangelogParseResult [changelog=" + changelog + ", errorMessageList=" + errorMessageList + "]";
+        return "ChangelogParseResult [changelog=" + changelog + ", changelogErrorList=" + changelogErrorList + "]";
     }
 }

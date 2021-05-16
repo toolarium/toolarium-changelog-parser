@@ -3,12 +3,13 @@
  *
  * Copyright by toolarium, all rights reserved.
  */
-package com.github.toolarium.changelog.formatter;
+package com.github.toolarium.changelog.formatter.impl;
 
 import com.github.toolarium.changelog.config.ChangelogConfig;
 import com.github.toolarium.changelog.dto.Changelog;
 import com.github.toolarium.changelog.dto.ChangelogEntry;
 import com.github.toolarium.changelog.dto.ChangelogSection;
+import com.github.toolarium.changelog.formatter.IChangelogFormatter;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,7 +19,7 @@ import java.util.List;
  * 
  * @author patrick
  */
-public class ChangelogFormatter {
+public class ChangelogFormatterImpl implements IChangelogFormatter {
     private static final String SPACE = " ";
     private ChangelogConfig changelogConfig;
 
@@ -26,7 +27,7 @@ public class ChangelogFormatter {
     /**
      * Constructor for ChangelogParser
      */
-    public ChangelogFormatter() {
+    public ChangelogFormatterImpl() {
         this(new ChangelogConfig());
     }
     
@@ -36,17 +37,15 @@ public class ChangelogFormatter {
      * 
      * @param changelogConfig the change-log configuration for formatting
      */
-    public ChangelogFormatter(ChangelogConfig changelogConfig) {
+    public ChangelogFormatterImpl(ChangelogConfig changelogConfig) {
         this.changelogConfig = changelogConfig;
     }
 
 
     /**
-     * Format
-     * 
-     * @param changelog the change-log
-     * @return the formated change-log 
+     * @see com.github.toolarium.changelog.formatter.IChangelogFormatter#format(com.github.toolarium.changelog.dto.Changelog)
      */
+    @Override
     public String format(Changelog changelog) {
         String firstSection = "" + changelogConfig.getSectionCharacter();
         String secondSection = "" + firstSection + changelogConfig.getSectionCharacter();
@@ -77,7 +76,13 @@ public class ChangelogFormatter {
                 }
                 
                 if (version != null) {
-                    append(result, secondSection + SPACE + prepareBracketExpression(changelogConfig, version));
+                    if (changelogConfig.isSupportReleaseLink() && entry.getReleaseLink() != null) {
+                        append(result, secondSection + SPACE + "[" + version + "]");
+                        append(result, "(" + entry.getReleaseLink().toExternalForm() + ")");
+                    } else {
+                        append(result, secondSection + SPACE + prepareBracketExpression(changelogConfig, version));
+                    }
+                    
                     if (entry.getReleaseDate() != null) {
                         append(result, SPACE + changelogConfig.getHeaderSeparator());
                         append(result, SPACE + entry.getReleaseDate());

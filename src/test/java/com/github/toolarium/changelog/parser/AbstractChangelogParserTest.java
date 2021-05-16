@@ -79,9 +79,9 @@ public abstract class AbstractChangelogParserTest {
     protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, ChangelogParseResult changelogParseResult, List<String> errorMessageList) throws IOException {
         assertEquals(content, format(changelogConfig, changelogParseResult.getChangelog()));
         if (errorMessageList == null || errorMessageList.isEmpty()) {
-            assertTrue(changelogParseResult.getErrorMessageList().isEmpty(), "Expected no errors: " + changelogParseResult.getErrorMessageList());
+            assertTrue(changelogParseResult.getChangelogErrorList().isEmpty(), "Expected no errors: " + changelogParseResult.getChangelogErrorList());
         } else {
-            assertEquals(errorMessageList, changelogParseResult.getErrorMessageList());
+            assertEquals(errorMessageList, changelogParseResult.getChangelogErrorList());
         }
 
         assertEquals(content, format(changelogConfig, changelogParseResult.getChangelog()));

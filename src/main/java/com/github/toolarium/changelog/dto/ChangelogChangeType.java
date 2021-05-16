@@ -42,6 +42,7 @@ public enum ChangelogChangeType {
         this.typeName = typeName;
     }
     
+    
     /**
      * Get the type name
      * 

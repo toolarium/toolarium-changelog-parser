@@ -7,21 +7,22 @@ package com.github.toolarium.changelog.config;
 
 import java.io.Serializable;
 import java.util.Objects;
-import jptools.util.RegularExpressionHolder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
- * Defines the change-log parse and format configuration  
+ * Defines the change-log validation and format configuration.  
  * 
  * @author patrick
  */
 public class ChangelogConfig implements Serializable {
     
     /** Regular expression: identifier in a content pattern */
-    public static final String IDENTIFIER_IN_CONTENT = ".*[a-zA-Z]{0,3}+[-_]{1}+[0-9]{3,}+.*";
+    public static final String IDENTIFIER_IN_CONTENT = "[a-zA-Z]{0,3}+[\\-\\_\\:]{1}+[0-9]{3,}+";
     
     /** Regular expression: link in a content pattern */
-    public static final String LINK_IN_CONTENT = ".*((http?|https|ftp|file)://)+((W|w){3}.)?[a-zA-Z0-9]+(\\.[a-zA-Z])?.*";
+    public static final String LINK_IN_CONTENT = "((http?|https|ftp|file)://)+((W|w){3}.)?[a-zA-Z0-9\\-\\_]+\\.([a-zA-Z0-9\\-\\.\\_\\~\\/\\%])+";
     
     private static final long serialVersionUID = 2583751968740322695L;
     private char sectionCharacter;
@@ -29,9 +30,11 @@ public class ChangelogConfig implements Serializable {
     private char itemSeparator;
     private boolean supportUnreleased;
     private boolean supportBracketsAroundVersion;
+    private boolean supportReleaseLink;
     private boolean supportReleaseInfo;
-    private RegularExpressionHolder linkCommentCheckExpression;
-    private RegularExpressionHolder idCommentCheckExpression;
+    private boolean supportLinkInDescription;
+    private Pattern linkCommentCheckPattern;
+    private Pattern idCommentCheckPattern;
 
     
     /**
@@ -43,7 +46,9 @@ public class ChangelogConfig implements Serializable {
         itemSeparator = '-';
         supportUnreleased = true;
         supportBracketsAroundVersion = false;
+        supportReleaseLink = true;
         supportReleaseInfo = false;
+        supportLinkInDescription = true;
         setLinkCommentCheckExpression(LINK_IN_CONTENT);
         setIdCommentCheckExpression(IDENTIFIER_IN_CONTENT);
     }
@@ -56,16 +61,26 @@ public class ChangelogConfig implements Serializable {
      * @param itemSeparator the item separator to validate strict; otherwise null
      * @param supportUnreleased true to support unreleased
      * @param supportBracketsAroundVersion true to support brackets around version
+     * @param supportReleaseLink true to  support release link
      * @param supportReleaseInfo the release information
+     * @param supportLinkInDescription true to support link in description
      */
-    public ChangelogConfig(char headerSeparator, char itemSeparator, boolean supportUnreleased, boolean supportBracketsAroundVersion, boolean supportReleaseInfo) {
+    public ChangelogConfig(char headerSeparator, 
+                           char itemSeparator, 
+                           boolean supportUnreleased, 
+                           boolean supportBracketsAroundVersion,
+                           boolean supportReleaseLink,
+                           boolean supportReleaseInfo, 
+                           boolean supportLinkInDescription) {
         this();
         
         this.headerSeparator = headerSeparator;
         this.itemSeparator = itemSeparator;
         this.supportUnreleased = supportUnreleased;
         this.supportBracketsAroundVersion = supportBracketsAroundVersion;
+        this.supportReleaseLink = supportReleaseLink;
         this.supportReleaseInfo = supportReleaseInfo;
+        this.supportLinkInDescription = supportLinkInDescription;
     }
 
 
@@ -170,6 +185,26 @@ public class ChangelogConfig implements Serializable {
 
     
     /**
+     * Check if release link is supported
+     * 
+     * @return true true if release link is supported
+     */
+    public boolean isSupportReleaseLink() {
+        return supportReleaseLink;
+    }
+
+
+    /**
+     * Set if release link is supported
+     * 
+     * @param supportReleaseLink true if release link is supported
+     */
+    public void setSupportReleaseLink(boolean supportReleaseLink) {
+        this.supportReleaseLink = supportReleaseLink;
+    }
+
+    
+    /**
      * Check if release information in header is supported
      * 
      * @return true if release information in header is supported
@@ -186,6 +221,27 @@ public class ChangelogConfig implements Serializable {
     public void setSupportReleaseInfo(boolean supportReleaseInfo) {
         this.supportReleaseInfo = supportReleaseInfo;
     }
+
+    
+    /**
+     * Check if link in description is supported.
+     * 
+     * @return true if link in description is supported
+     */
+    public boolean isSupportLinkInDescription() {
+        return supportLinkInDescription;
+    }
+
+    
+    /**
+     * Set if link in description is supported.
+     * 
+     * @param supportLinkInDescription true to enable link in description
+     */
+    public void setSupportLinkInDescription(boolean supportLinkInDescription) {
+        this.supportLinkInDescription = supportLinkInDescription;
+    }
+    
     
     /**
      * Check if links in comment are supported
@@ -193,21 +249,23 @@ public class ChangelogConfig implements Serializable {
      * @return true if links in comment are supported
      */
     public boolean isLinkInCommentEnabled() {
-        return (linkCommentCheckExpression != null);
+        return (linkCommentCheckPattern != null);
     }
 
+    
     /**
      * Get the link comment check expression
      * 
      * @return the link comment check expression
      */
     public String getLinkCommentCheckExpression() {
-        if (linkCommentCheckExpression == null) {
+        if (linkCommentCheckPattern == null) {
             return null;
         }
         
-        return linkCommentCheckExpression.toString();
+        return linkCommentCheckPattern.toString();
     }
+    
     
     /**
      * Set the link comment check expression
@@ -216,9 +274,9 @@ public class ChangelogConfig implements Serializable {
      */
     public void setLinkCommentCheckExpression(String linkCommentCheckExpression) {
         if (linkCommentCheckExpression == null) {
-            this.linkCommentCheckExpression = null;
+            this.linkCommentCheckPattern = null;
         } else {
-            this.linkCommentCheckExpression = new RegularExpressionHolder(linkCommentCheckExpression);
+            this.linkCommentCheckPattern = Pattern.compile(linkCommentCheckExpression);
         }
     }
     
@@ -226,18 +284,22 @@ public class ChangelogConfig implements Serializable {
      * Check if the text has a link
      * 
      * @param text the text to verify
-     * @return true if it has a link
+     * @return the link or null
      */
-    public boolean hasLinkInComment(String text) {
+    public String hasLinkInComment(String text) {
         if (text == null) {
-            return false;
+            return null;
         }
         
-        if (linkCommentCheckExpression != null) {
-            return linkCommentCheckExpression.match(text);
+        String link = null;
+        if (linkCommentCheckPattern != null) {
+            Matcher matcher = linkCommentCheckPattern.matcher(text);
+            if (matcher.find()) {
+                link = matcher.group();
+            }
         }
 
-        return false;
+        return link;
     }    
     
     
@@ -247,21 +309,23 @@ public class ChangelogConfig implements Serializable {
      * @return true if ID's in comment are supported
      */
     public boolean isIdInCommentEnabled() {
-        return (idCommentCheckExpression != null);
+        return (idCommentCheckPattern != null);
     }
 
+    
     /**
      * Get the id comment check expression
      * 
      * @return the id comment check expression
      */
     public String getIdCommentCheckExpression() {
-        if (idCommentCheckExpression == null) {
+        if (idCommentCheckPattern == null) {
             return null;
         }
 
-        return idCommentCheckExpression.toString();
+        return idCommentCheckPattern.toString();
     }
+    
     
     /**
      * Set the id comment check expression
@@ -270,11 +334,12 @@ public class ChangelogConfig implements Serializable {
      */
     public void setIdCommentCheckExpression(String idCommentCheckExpression) {
         if (idCommentCheckExpression == null) {
-            this.idCommentCheckExpression = null;
+            this.idCommentCheckPattern = null;
         } else {
-            this.idCommentCheckExpression = new RegularExpressionHolder(idCommentCheckExpression);
+            this.idCommentCheckPattern = Pattern.compile(idCommentCheckExpression);
         }
     }
+    
     
     /**
      * Check if the text has an id
@@ -282,25 +347,32 @@ public class ChangelogConfig implements Serializable {
      * @param text the text to verify
      * @return true if it has an identifier
      */
-    public boolean hasIdInComment(String text) {
+    public String hasIdInComment(String text) {
         if (text == null) {
-            return false;
+            return null;
         }
         
-        if (idCommentCheckExpression != null) {
-            return idCommentCheckExpression.match(text);
+        String id = null;
+        if (idCommentCheckPattern != null) {
+            Matcher matcher = idCommentCheckPattern.matcher(text);
+            if (matcher.find()) {
+                id = matcher.group();
+            }
         }
 
-        return false;
+        return id;
     }
 
-    
+
+
+
     /**
      * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {
-        return Objects.hash(headerSeparator, itemSeparator, sectionCharacter, supportBracketsAroundVersion, supportReleaseInfo, supportUnreleased);
+        return Objects.hash(headerSeparator, idCommentCheckPattern, itemSeparator, linkCommentCheckPattern, sectionCharacter, supportBracketsAroundVersion, supportLinkInDescription, 
+                            supportReleaseInfo, supportReleaseLink, supportUnreleased);
     }
 
 
@@ -312,15 +384,19 @@ public class ChangelogConfig implements Serializable {
         if (this == obj) {
             return true;
         }
+        
         if (obj == null) {
             return false;
         }
+        
         if (getClass() != obj.getClass()) {
             return false;
         }
+        
         ChangelogConfig other = (ChangelogConfig) obj;
-        return headerSeparator == other.headerSeparator && itemSeparator == other.itemSeparator && sectionCharacter == other.sectionCharacter && supportBracketsAroundVersion == other.supportBracketsAroundVersion
-                && supportReleaseInfo == other.supportReleaseInfo && supportUnreleased == other.supportUnreleased;
+        return headerSeparator == other.headerSeparator && Objects.equals(idCommentCheckPattern, other.idCommentCheckPattern) && itemSeparator == other.itemSeparator && Objects.equals(linkCommentCheckPattern, other.linkCommentCheckPattern)
+                && sectionCharacter == other.sectionCharacter && supportBracketsAroundVersion == other.supportBracketsAroundVersion && supportLinkInDescription == other.supportLinkInDescription && supportReleaseInfo == other.supportReleaseInfo
+                && supportReleaseLink == other.supportReleaseLink && supportUnreleased == other.supportUnreleased;
     }
 
 
@@ -334,9 +410,11 @@ public class ChangelogConfig implements Serializable {
                + ", itemSeparator=" + itemSeparator 
                + ", supportUnreleased=" + supportUnreleased
                + ", supportBracketsAroundVersion=" + supportBracketsAroundVersion
+               + ", supportReleaseLink=" + supportReleaseLink
                + ", supportReleaseInfo=" + supportReleaseInfo
-               + ", linkCommentCheckExpression=" + linkCommentCheckExpression
-               + ", idCommentCheckExpression=" + idCommentCheckExpression
+               + ", supportLinkInDescription=" + supportLinkInDescription
+               + ", linkCommentCheckExpression=" + linkCommentCheckPattern
+               + ", idCommentCheckExpression=" + idCommentCheckPattern
                + "]";
     }
 }

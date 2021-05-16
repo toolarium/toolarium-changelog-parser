@@ -3,9 +3,9 @@
  *
  * Copyright by toolarium, all rights reserved.
  */
-package com.github.toolarium.changelog.exception;
+package com.github.toolarium.changelog.validator;
 
-import java.util.List;
+import com.github.toolarium.changelog.dto.ChangelogErrorList;
 
 /**
  * Defines the validation exception
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class ValidationException extends Exception {
     private static final long serialVersionUID = -291893037239967317L;
-    private List<String> validationErrorList;
+    private ChangelogErrorList validationErrorList;
 
     
     /**
@@ -23,7 +23,7 @@ public class ValidationException extends Exception {
      * @param message the message
      * @param validationErrorList the validation error list
      */
-    public ValidationException(String message, List<String> validationErrorList) {
+    public ValidationException(String message, ChangelogErrorList validationErrorList) {
         super(message);
         this.validationErrorList = validationErrorList;
     }
@@ -34,7 +34,7 @@ public class ValidationException extends Exception {
      * 
      * @return the validation error list.
      */
-    public List<String> getValidationErrorList() {
+    public ChangelogErrorList getValidationErrorList() {
         return validationErrorList;
     }
 
@@ -44,8 +44,11 @@ public class ValidationException extends Exception {
      */
     @Override
     public String toString() {
-        final StringBuilder result = new StringBuilder(super.toString() + "\n");
-        validationErrorList.stream().forEach((comment) -> result.append(comment + "\n"));
-        return result.toString();
+        String result = getMessage();
+        if (validationErrorList != null) {
+            result += "\n" + validationErrorList.prepareString();
+        }
+        
+        return result; 
     }
 }

@@ -17,6 +17,8 @@ import com.github.toolarium.changelog.config.ChangelogConfig;
 import com.github.toolarium.changelog.dto.Changelog;
 import com.github.toolarium.changelog.dto.ChangelogChangeType;
 import com.github.toolarium.changelog.dto.ChangelogEntry;
+import com.github.toolarium.changelog.dto.ChangelogErrorList;
+import com.github.toolarium.changelog.dto.ChangelogErrorList.ErrorType;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +46,8 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         });
 
         assertNull(ChangelogFactory.getInstance().parse("").getChangelog());
-        assertNull(ChangelogFactory.getInstance().parse("").getErrorMessageList());
+        assertNotNull(ChangelogFactory.getInstance().parse("").getChangelogErrorList());
+        assertTrue(ChangelogFactory.getInstance().parse("").getChangelogErrorList().isEmpty());
     }
 
     
@@ -55,7 +58,13 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      */
     @Test public void testInvalidChangelog() throws IOException {
         assertEquals("", ChangelogFactory.getInstance().parse("Test").getChangelog().getProjectName());
-        assertEquals("[Invalid empty changelog name!]", ChangelogFactory.getInstance().parse("Test").getErrorMessageList().toString());
+        ChangelogErrorList changelogErrorList = ChangelogFactory.getInstance().parse("Test").getChangelogErrorList();
+        assertNotNull(changelogErrorList);
+        
+        assertEquals(1, changelogErrorList.countGeneralErrors());
+        assertEquals(0, changelogErrorList.countReleaseErrors());
+        assertNotNull(changelogErrorList.getGeneralErrors().get(ErrorType.CHANGELOG));
+        assertEquals("Invalid empty changelog name!", changelogErrorList.getGeneralErrors().get(ErrorType.CHANGELOG).get(0));
     }
 
     
@@ -84,11 +93,12 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertEquals(unReleaseEntry, entry);
         assertNull(entry.getReleaseVersion());
         assertFalse(entry.isReleased());
-        assertEquals(entry.getDescription(), "- Test");
+        assertEquals(entry.getDescription(), "- This is a test.");
         assertNotNull(entry.getSectionList());
         assertEquals(entry.getSectionList().size(), 0);
 
         entry = changelog.getEntry(VERSION_1_0_0);
+        assertNotNull(entry);
         assertTrue(entry.isReleased());
         assertEquals(entry.getReleaseVersion().toString(), VERSION_1_0_0);
         assertEquals(entry.getReleaseDate().toString(), "2021-04-08");
@@ -117,14 +127,14 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelogDifferentFormat() throws IOException, ParseException {
-        Changelog changelog = assertChangelogFile(new ChangelogConfig('/', '*', true, false, false), Paths.get("src", "test", "resources", "CHANGELOG-different-format-valid.md"), null);
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('/', '*', true, false, true, false, true), Paths.get("src", "test", "resources", "CHANGELOG-different-format-valid.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry("Unreleased");
         ChangelogEntry entry = changelog.getEntry(null);
         assertEquals(unReleaseEntry, entry);
         assertNull(entry.getReleaseVersion());
         assertFalse(entry.isReleased());
-        assertEquals(entry.getDescription(), "* Test");
+        assertEquals(entry.getDescription(), "* This is a test.");
         assertNotNull(entry.getSectionList());
         assertEquals(entry.getSectionList().size(), 0);
 
@@ -157,14 +167,14 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelogWithBracket() throws IOException, ParseException {
-        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, true, false), Paths.get("src", "test", "resources", "CHANGELOG-valid-with-brackets.md"), null);
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, true, true, false, true), Paths.get("src", "test", "resources", "CHANGELOG-valid-with-brackets.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry("Unreleased");
         ChangelogEntry entry = changelog.getEntry(null);
         assertEquals(unReleaseEntry, entry);
         assertNull(entry.getReleaseVersion());
         assertFalse(entry.isReleased());
-        assertEquals(entry.getDescription(), "- Test");
+        assertEquals(entry.getDescription(), "- The test description.");
         assertNotNull(entry.getSectionList());
         assertEquals(entry.getSectionList().size(), 0);
 
@@ -199,7 +209,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
     @Test public void testUnsupportedUnreleased() throws IOException, ParseException {
         Path filename = Paths.get("src", "test", "resources", "CHANGELOG-valid.md");
         ChangelogParseResult changelogParseResult = parseFile(filename);
-        assertTrue(changelogParseResult.getErrorMessageList().isEmpty(), "Expected no errors: " + changelogParseResult.getErrorMessageList());
+        assertTrue(changelogParseResult.getChangelogErrorList().isEmpty(), "Expected no errors: " + changelogParseResult.getChangelogErrorList());
 
         Changelog changelog = changelogParseResult.getChangelog();
 
@@ -208,7 +218,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertEquals(unReleaseEntry, entry);
         assertNull(entry.getReleaseVersion());
         assertFalse(entry.isReleased());
-        assertEquals(entry.getDescription(), "- Test");
+        assertEquals(entry.getDescription(), "- This is a test.");
         assertNotNull(entry.getSectionList());
         assertEquals(entry.getSectionList().size(), 0);
 
@@ -231,6 +241,6 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertEquals(entry.getSectionList().get(1).getChangeCommentList().size(), 1);
         assertEquals(entry.getSectionList().get(1).getChangeCommentList().get(0), "Fix typos in service specifications.");
 
-        assertEquals(readContent(filename), format(new ChangelogConfig('-', '-', true, false, false), changelog));
+        assertEquals(readContent(filename), format(new ChangelogConfig('-', '-', true, false, true, false, true), changelog));
     }
 }

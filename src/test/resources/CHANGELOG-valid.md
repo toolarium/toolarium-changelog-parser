@@ -6,10 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- Test
+- This is a test.
 
-## 1.1.1 - 2021-05-04
-Description
+## [1.1.1](https://github.com/toolarium) - 2021-05-04
+A short description.
 
 ### Changed
 - Bugfixes on UI.
@@ -17,7 +17,7 @@ Description
 - Bugfixes on XY-Service.
 
 ### Added
-- New wi # zar - d
+- New wi # zar - d.
 
 ## 1.1.0 - 2021-04-22
 ### Added
@@ -31,7 +31,7 @@ Description
 ## 1.0.2 - 2021-04-15
 ### Changed
 - Fixed labels.
-  Long label
+  Long label.
 - Fixed translation issues.
 
 ## 1.0.1 - 2021-04-14 - YANKED

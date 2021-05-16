@@ -12,7 +12,8 @@ import java.util.Objects;
 
 
 /**
- * Defines the change-log section 
+ * Defines the change-log section which is part of an entry.
+ * It contains the ChangelogChangeType and a list with comments.
  * 
  * @author patrick
  */

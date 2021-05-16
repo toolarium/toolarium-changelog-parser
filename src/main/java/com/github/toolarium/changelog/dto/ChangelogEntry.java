@@ -6,23 +6,22 @@
 package com.github.toolarium.changelog.dto;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import jptools.parser.ParseException;
-import jptools.util.version.Version;
 
 
 /**
- * The change-log entry 
+ * The change-log entry contains beside the version and release date an optional description and a list with {@link ChangelogSection}s.
  * 
  * @author patrick
  */
 public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable {
     private static final long serialVersionUID = 23424823094L;
-    private Version releaseVersion;
+    private ChangelogReleaseVersion releaseVersion;
+    private URL releaseLink;
     private boolean hasBracketsAroundVersion;
     private LocalDate releaseDate;
     private String releaseDescription;
@@ -46,7 +45,7 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @param releaseVersion the release version 
      * @param releaseDate the release date
      */
-    public ChangelogEntry(Version releaseVersion, LocalDate releaseDate) {
+    public ChangelogEntry(ChangelogReleaseVersion releaseVersion, LocalDate releaseDate) {
         this(releaseVersion, releaseDate, null, null);
     }    
     
@@ -59,7 +58,7 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @param releaseDescription the release description
      * @param releaseInfo the release information 
      */
-    public ChangelogEntry(Version releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo) {
+    public ChangelogEntry(ChangelogReleaseVersion releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo) {
         this(releaseVersion, releaseDate, releaseDescription, releaseInfo, true, false, new ArrayList<ChangelogSection>());
     }
     
@@ -75,7 +74,7 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @param wasYanked true if it is yanked otherwise false
      * @param sectionList the section list
      */
-    public ChangelogEntry(Version releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo, boolean isReleased, boolean wasYanked, List<ChangelogSection> sectionList) {
+    public ChangelogEntry(ChangelogReleaseVersion releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo, boolean isReleased, boolean wasYanked, List<ChangelogSection> sectionList) {
         this.releaseVersion = releaseVersion;
         this.releaseDate = releaseDate;
         this.releaseDescription = releaseDescription;
@@ -91,36 +90,44 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      *
      * @return the release version
      */
-    public Version getReleaseVersion() {
+    public ChangelogReleaseVersion getReleaseVersion() {
         return releaseVersion;
     }
 
     
     /**
-     * Get the release version
+     * Set the release version
      *
-     * @param inputVersion the release version
-     * @throws ParseException In case of an invalid version
+     * @param releaseVersion the release version
      */
-    public void setReleaseVersion(String inputVersion) throws ParseException {
-        if (inputVersion == null || inputVersion.isBlank()) {
+    public void setReleaseVersion(ChangelogReleaseVersion releaseVersion) {
+        if (releaseVersion == null) {
             isReleased = false;
             return;
         }
 
-        String version = readBracketExpression(inputVersion.trim());
-        if ("Unreleased".equalsIgnoreCase(version)) {
-            isReleased = false;
-            return;
-        }
+        isReleased = true;
+        this.releaseVersion = releaseVersion;
+    }
 
-        this.isReleased = true;
-        this.releaseVersion = new Version(version);
-        if ((releaseVersion.getMajorInfo() != null && !releaseVersion.getMajorInfo().isEmpty()) 
-                || (releaseVersion.getMinorInfo() != null && !releaseVersion.getMinorInfo().isEmpty())
-                || (releaseVersion.getBuildInfo() != null && !releaseVersion.getBuildInfo().isEmpty())) {
-            throw new ParseException("Invalid version format: " + inputVersion);
-        }
+    
+    /**
+     * Get the release link
+     *
+     * @return the release link
+     */
+    public URL getReleaseLink() {
+        return releaseLink;
+    }
+
+    
+    /**
+     * Set the release link
+     *
+     * @param releaseLink the release link
+     */
+    public void setReleaseLink(URL releaseLink) {
+        this.releaseLink = releaseLink;
     }
 
     
@@ -144,32 +151,6 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
     }
 
 
-    /**
-     * Read bracket expression
-     * 
-     * @param input the input
-     * @return the prepared input
-     */
-    protected String readBracketExpression(String input) {
-        if (input == null) {
-            return input;
-        }
-        
-        String result = input.trim();
-        if (!result.isEmpty() && result.startsWith("[")) {
-            result = result.substring(1);
-            hasBracketsAroundVersion = true;
-        }
-        
-        if (!result.isEmpty() && result.endsWith("]")) {
-            result = result.substring(0, result.length() - 1);
-            hasBracketsAroundVersion = true;
-        }
-        
-        return result;
-    }
-
-    
     /**
      * Get the release date 
      *
@@ -291,12 +272,14 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
     }
     
 
+
+
     /**
      * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {
-        return Objects.hash(isReleased, releaseDate, releaseDescription, releaseInfo, releaseVersion, sectionList, wasYanked);
+        return Objects.hash(hasBracketsAroundVersion, isReleased, releaseDate, releaseDescription, releaseInfo, releaseLink, releaseVersion, sectionList, wasYanked);
     }
 
 
@@ -315,8 +298,9 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
             return false;
         }
         ChangelogEntry other = (ChangelogEntry) obj;
-        return isReleased == other.isReleased && Objects.equals(releaseDate, other.releaseDate) && Objects.equals(releaseDescription, other.releaseDescription) && Objects.equals(releaseInfo, other.releaseInfo)
-                && Objects.equals(releaseVersion, other.releaseVersion) && Objects.equals(sectionList, other.sectionList) && wasYanked == other.wasYanked;
+        return hasBracketsAroundVersion == other.hasBracketsAroundVersion && isReleased == other.isReleased && Objects.equals(releaseDate, other.releaseDate) && Objects.equals(releaseDescription, other.releaseDescription)
+                && Objects.equals(releaseInfo, other.releaseInfo) && Objects.equals(releaseLink, other.releaseLink) && Objects.equals(releaseVersion, other.releaseVersion) && Objects.equals(sectionList, other.sectionList)
+                && wasYanked == other.wasYanked;
     }
 
 
@@ -326,150 +310,8 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
     @Override
     public String toString() {
         return "ChangelogEntry [releaseVersion=" + releaseVersion
-               + ", releaseDate=" + releaseDate + ", releaseDescription=" + releaseDescription + ", releaseInfo=" + releaseInfo + ", isReleased=" + isReleased
+               + ", releaseDate=" + releaseDate + ", releaseLink=" + releaseLink + ", releaseDescription=" + releaseDescription + ", releaseInfo=" + releaseInfo + ", isReleased=" + isReleased
                + ", wasYanked=" + wasYanked + ", sectionList=" + sectionList
                + "]";
-    }
-
-    
-    /**
-     * The builder
-     */
-    public static class Builder {
-        private Version releaseVersion;
-        private LocalDate releaseDate;
-        private String releaseDescription;
-        private String releaseInfo;
-        private boolean isReleased = true;
-        private boolean wasYanked;
-        private List<ChangelogSection> sectionList = new ArrayList<>();
-
-
-        /**
-         * Constructor for Builder
-         */
-        public Builder() {
-        }        
-        
-        /**
-         * Set the release version
-         * 
-         * @param inputVersion the release version
-         * @return the object
-         * @throws ParseException In case of an invalid version string
-         */
-        public Builder version(String inputVersion) throws ParseException {
-            if (inputVersion == null || inputVersion.isBlank()) {
-                return setUnreleased();
-            }
-            
-            String version = inputVersion.trim();
-            if ("Unreleased".equalsIgnoreCase(version)) {
-                return setUnreleased();
-            }
-            
-            this.releaseVersion = new Version(version);
-            if ((releaseVersion.getMajorInfo() != null && !releaseVersion.getMajorInfo().isEmpty()) || (releaseVersion.getMinorInfo() != null && !releaseVersion.getMinorInfo().isEmpty()) 
-                    || (releaseVersion.getBuildInfo() != null && !releaseVersion.getBuildInfo().isEmpty())) {
-                throw new ParseException("Invalid version format: " + inputVersion);
-            }
-
-            return this;
-        }
-
-        /**
-         * Set the release date
-         * 
-         * @param date the release date
-         * @return the object
-         * @throws DateTimeParseException In case of an invalid date string
-         */
-        public Builder date(String date) throws DateTimeParseException {
-            if (date != null && !date.isEmpty()) {
-                this.releaseDate = LocalDate.parse(date);
-            }
-            
-            return this;
-        }
-
-        
-        /**
-         * Set the release description
-         * 
-         * @param description the release description
-         * @return the object
-         */
-        public Builder description(String description) {
-            this.releaseDescription = description;
-            return this;
-        }        
-        
-        
-        /**
-         * Set the release info
-         * 
-         * @param info the release info
-         * @return the object
-         */
-        public Builder info(String info) {
-            this.releaseInfo = info;
-            return this;
-        }
-
-        
-        /**
-         * Add a section
-         * 
-         * @param section the section
-         * @return the object
-         */
-        public Builder addSection(ChangelogSection section) {
-            sectionList.add(section);
-            return this;
-        }
-
-        
-        /**
-         * Set released
-         * 
-         * @return the object
-         */
-        public Builder setReleased() {
-            isReleased = true;
-            return this;
-        }
-
-
-        /**
-         * Set unreleased
-         * 
-         * @return the object
-         */
-        public Builder setUnreleased() {
-            isReleased = false;
-            return this;
-        }
-
-
-        /**
-         * Set yanked
-         * 
-         * @param yanked true if it was yanked
-         * @return the object
-         */
-        public Builder yanked(boolean yanked) {
-            this.wasYanked = yanked;
-            return this;
-        }
-
-
-        /**
-         * Build
-         * 
-         * @return the change-log entry
-         */
-        public ChangelogEntry build() {
-            return new ChangelogEntry(releaseVersion, releaseDate, releaseDescription, releaseInfo, isReleased, wasYanked, sectionList);
-        }
     }
 }

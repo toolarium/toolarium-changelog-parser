@@ -15,7 +15,7 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
 /***************************************************************************************
  * define the main class name
  ***************************************************************************************/
-mainClassName = "com.github.toolarium.changelog.ChangelogMain"
+mainClassName = "com.github.toolarium.changelog.main.ChangelogMain"
 
 
 /****************************************************************************************
