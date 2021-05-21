@@ -258,7 +258,8 @@ public class ChangelogParserImpl implements IChangelogParser {
                     throw new ParseException("Invalid version format: " + releaseVersion + "!");
                 }
 
-                changelogReleaseVersion = new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getBuildNumber(), StringHelper.trimLeft(v.getBuildInfo(),'-'));                    
+                String buildInfo = StringHelper.trimLeft(StringHelper.trimLeft(v.getBuildInfo(),'-'),'.');
+                changelogReleaseVersion = new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getBuildNumber(), buildInfo);                    
             }
 
             changelogEntry.setReleaseVersion(changelogReleaseVersion);

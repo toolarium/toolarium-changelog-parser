@@ -22,8 +22,8 @@ A short description.
 ## 1.1.0 - 2021-04-22
 ### Added
 - New UI wizard introduced.
-- 2FA introduced.
-- Changed password.
+- Introduced new 2FA support.
+- Changed default password.
 
 ### Removed
 - Removed export job.
@@ -38,12 +38,12 @@ A short description.
 ### Changed
 - Performance improvements on dossier access.
 - Added service events in document-service.
-- Bugfixes on document-service.
+- Bugfixes on document-service (MY-121, LL-122).
 
 ## 1.0.0 - 2021-04-08
 ### Changed
 - New visual identity.
-- Version navigation.
+- Version navigation updated.
 - Links top navigation.
 
 ### Fixed

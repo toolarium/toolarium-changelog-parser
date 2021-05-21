@@ -20,7 +20,7 @@ Description
 ### Addeded
 - New UI wizard introduced: http://url.com/dd which you can find more information.
 - 2FA introduced: AB-234.
-- Changed password.
+- Changed.
 
 ### Removet
 - Removed export job.
@@ -37,7 +37,7 @@ Description
 ### Changed
 - Performance improvements on dossier access.
 - Added service events in document-service
-- Bugfixes on document-service.
+- Bugfixes on document-service (ID-123, ID-56).
 
 ## 1.0.0 - 2021-04-08
 ### Changed

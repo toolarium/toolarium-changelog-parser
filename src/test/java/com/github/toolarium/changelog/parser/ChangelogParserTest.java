@@ -110,7 +110,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertNotNull(entry.getSectionList().get(0).getChangeCommentList());
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().size(), 3);
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(0), "New visual identity.");
-        assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(1), "Version navigation.");
+        assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(1), "Version navigation updated.");
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(2), "Links top navigation.");
 
         assertEquals(entry.getSectionList().get(1).getChangeType(), ChangelogChangeType.FIXED);
@@ -127,7 +127,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelogDifferentFormat() throws IOException, ParseException {
-        Changelog changelog = assertChangelogFile(new ChangelogConfig('/', '*', true, false, true, false, true), Paths.get("src", "test", "resources", "CHANGELOG-different-format-valid.md"), null);
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('/', '*', true, false, true, false, true, true), Paths.get("src", "test", "resources", "CHANGELOG-different-format-valid.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry("Unreleased");
         ChangelogEntry entry = changelog.getEntry(null);
@@ -167,7 +167,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelogWithBracket() throws IOException, ParseException {
-        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, true, true, false, true), Paths.get("src", "test", "resources", "CHANGELOG-valid-with-brackets.md"), null);
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, true, true, false, true, true), Paths.get("src", "test", "resources", "CHANGELOG-valid-with-brackets.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry("Unreleased");
         ChangelogEntry entry = changelog.getEntry(null);
@@ -233,7 +233,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertNotNull(entry.getSectionList().get(0).getChangeCommentList());
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().size(), 3);
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(0), "New visual identity.");
-        assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(1), "Version navigation.");
+        assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(1), "Version navigation updated.");
         assertEquals(entry.getSectionList().get(0).getChangeCommentList().get(2), "Links top navigation.");
 
         assertEquals(entry.getSectionList().get(1).getChangeType(), ChangelogChangeType.FIXED);
@@ -241,6 +241,6 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
         assertEquals(entry.getSectionList().get(1).getChangeCommentList().size(), 1);
         assertEquals(entry.getSectionList().get(1).getChangeCommentList().get(0), "Fix typos in service specifications.");
 
-        assertEquals(readContent(filename), format(new ChangelogConfig('-', '-', true, false, true, false, true), changelog));
+        assertEquals(readContent(filename), format(new ChangelogConfig('-', '-', true, false, true, false, true, true), changelog));
     }
 }

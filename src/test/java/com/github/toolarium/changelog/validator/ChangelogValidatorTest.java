@@ -49,7 +49,7 @@ public class ChangelogValidatorTest {
         try {
             ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-invalid.md"), "<project-name>", "Comment", "1.1.1");
         } catch (ValidationException e) {
-            assertEquals(17, e.getValidationErrorList().size());
+            assertEquals(18, e.getValidationErrorList().size());
             
             assertEquals(2, e.getValidationErrorList().getGeneralErrors().size());
             assertEquals(3, e.getValidationErrorList().countGeneralErrors());
@@ -66,7 +66,7 @@ public class ChangelogValidatorTest {
             assertEquals("Description text don't end with a punction mark!", e.getValidationErrorList().getGeneralErrors().get(ErrorType.UNRELEASED).get(0));
 
             assertEquals(5, e.getValidationErrorList().getReleaseErrors().size());
-            assertEquals(14, e.getValidationErrorList().countReleaseErrors());
+            assertEquals(15, e.getValidationErrorList().countReleaseErrors());
             
             
             ChangelogReleaseVersion releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("1.2.0");
@@ -77,6 +77,7 @@ public class ChangelogValidatorTest {
             assertEquals("Newer version in than [1.1.1] in changelog found!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             assertEquals("Section has a link comment which is not allowed: [http://url.com/dd]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             assertEquals("Section has an id in comment which is not allowed: [AB-234]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
+            assertEquals("Invalid sentence in section type Section: [Changed]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             assertEquals("Empty comment list in section type FIXED!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             
             releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("1.1.1");

@@ -460,15 +460,91 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
             }
         }
 
+        String trimmedComment = changeComment.trim();
+        if (!(trimmedComment.trim().endsWith(".") || trimmedComment.trim().endsWith(EXCLAMATION_MARK))) {
+            changelogErrorList.addReleaseError(releaseVersion, changelogChangeType + " text don't end with a punction mark!");
+        }
+
+        ChangeComment comment = validateChangeIdInComment(changelogErrorList, releaseVersion, changelogChangeType, trimmedComment);
+        if (comment != null && comment.getComment() != null && !comment.getComment().isBlank()) {
+            validateSentence(changelogErrorList, releaseVersion, changelogChangeType, comment.getComment());
+        } else {
+            changelogErrorList.addReleaseError(releaseVersion, "Empty comment in section type " + changelogChangeType + EXCLAMATION_MARK);
+        }
+    }
+
+    
+    /**
+     * Validate the change comment
+     * 
+     * @param changelogErrorList the change-log error list
+     * @param releaseVersion the release version or null
+     * @param changelogChangeType the change log type
+     * @param changeComment text the change comment
+     * @return list of ids.
+     */
+    protected ChangeComment validateChangeIdInComment(ChangelogErrorList changelogErrorList, ChangelogReleaseVersion releaseVersion, String changelogChangeType, String changeComment) {
+        if (changeComment == null || changeComment.isBlank()) {
+            return null;
+        }
+        
+        String comment = changeComment.trim();
+        if (comment.endsWith(".") || comment.endsWith(EXCLAMATION_MARK)) {
+            comment = comment.substring(0, comment.length() - 1);
+        }
+
+        List<String> idList = null;
+        if (changelogConfig.isSupportIdListOnEndOfTheComment()) {
+            idList = new ArrayList<>();
+            int idx = comment.lastIndexOf('(');
+            if ((idx > 0) && (idx < comment.length())) {
+                // cut comment
+                String list = comment.substring(idx + 1).trim();
+                if (!list.isEmpty() && list.endsWith(")")) {
+                    list = list.substring(0, list.length() - 1);
+                    
+                    if (!list.isBlank()) {
+                        comment = comment.substring(0, idx).trim();
+
+                        String[] ids = list.split(",");
+                        for (int i = 0; i < ids.length; i++) {
+                            String id = ids[i].trim();
+                            if (!id.isEmpty()) {
+                                idList.add(id);
+                            }
+                        }
+                    }
+                }
+            } 
+        } 
+        
         if (changelogConfig.isIdInCommentEnabled()) {
-            String id = changelogConfig.hasIdInComment(changeComment);
+            String id = changelogConfig.hasIdInComment(comment);
             if (id != null) {
                 changelogErrorList.addReleaseError(releaseVersion, changelogChangeType + " has an id in comment which is not allowed: [" + id + END_MESSAGE);
             }
         }
         
-        if (!(changeComment.trim().endsWith(".") || changeComment.trim().endsWith(EXCLAMATION_MARK))) {
-            changelogErrorList.addReleaseError(releaseVersion, changelogChangeType + " text don't end with a punction mark!");
+        return new ChangeComment(comment, idList);
+    }
+
+    
+    /**
+     * Validate the sentence.
+     * 
+     * @param changelogErrorList the change-log error list
+     * @param releaseVersion the release version or null
+     * @param changelogChangeType the change log type
+     * @param sentence the sentence to test
+     */
+    protected void validateSentence(ChangelogErrorList changelogErrorList, ChangelogReleaseVersion releaseVersion, String changelogChangeType, String sentence) {
+        if (sentence == null || sentence.isBlank()) {
+            return;
+        }
+     
+        String[] splitComment = sentence.split(" ");
+        if (splitComment.length < 2) {
+            changelogErrorList.addReleaseError(releaseVersion, "Invalid sentence in section type " + changelogChangeType + ": [" + sentence + "]" + EXCLAMATION_MARK);
         }
     }
 

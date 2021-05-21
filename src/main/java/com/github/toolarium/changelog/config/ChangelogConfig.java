@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class ChangelogConfig implements Serializable {
     
     /** Regular expression: identifier in a content pattern */
-    public static final String IDENTIFIER_IN_CONTENT = "[a-zA-Z]{0,3}+[\\-\\_\\:]{1}+[0-9]{3,}+";
+    public static final String IDENTIFIER_IN_CONTENT = "[a-zA-Z0_9]{0,3}+[\\-\\_\\:]{1}+[0-9]{3,}+";
     
     /** Regular expression: link in a content pattern */
     public static final String LINK_IN_CONTENT = "((http?|https|ftp|file)://)+((W|w){3}.)?[a-zA-Z0-9\\-\\_]+\\.([a-zA-Z0-9\\-\\.\\_\\~\\/\\%])+";
@@ -33,6 +33,7 @@ public class ChangelogConfig implements Serializable {
     private boolean supportReleaseLink;
     private boolean supportReleaseInfo;
     private boolean supportLinkInDescription;
+    private boolean supportIdListOnEndOfTheComment;
     private Pattern linkCommentCheckPattern;
     private Pattern idCommentCheckPattern;
 
@@ -49,6 +50,7 @@ public class ChangelogConfig implements Serializable {
         supportReleaseLink = true;
         supportReleaseInfo = false;
         supportLinkInDescription = true;
+        supportIdListOnEndOfTheComment = true;
         setLinkCommentCheckExpression(LINK_IN_CONTENT);
         setIdCommentCheckExpression(IDENTIFIER_IN_CONTENT);
     }
@@ -64,6 +66,7 @@ public class ChangelogConfig implements Serializable {
      * @param supportReleaseLink true to  support release link
      * @param supportReleaseInfo the release information
      * @param supportLinkInDescription true to support link in description
+     * @param supportIdListOnEndOfTheComment true to support id as a comma separated list on end of the comment
      */
     public ChangelogConfig(char headerSeparator, 
                            char itemSeparator, 
@@ -71,7 +74,8 @@ public class ChangelogConfig implements Serializable {
                            boolean supportBracketsAroundVersion,
                            boolean supportReleaseLink,
                            boolean supportReleaseInfo, 
-                           boolean supportLinkInDescription) {
+                           boolean supportLinkInDescription,
+                           boolean supportIdListOnEndOfTheComment) {
         this();
         
         this.headerSeparator = headerSeparator;
@@ -81,6 +85,7 @@ public class ChangelogConfig implements Serializable {
         this.supportReleaseLink = supportReleaseLink;
         this.supportReleaseInfo = supportReleaseInfo;
         this.supportLinkInDescription = supportLinkInDescription;
+        this.supportIdListOnEndOfTheComment = supportIdListOnEndOfTheComment;
     }
 
 
@@ -304,6 +309,26 @@ public class ChangelogConfig implements Serializable {
     
     
     /**
+     * Check if id as comma separated list on end of the comment is allowed.
+     * 
+     * @return true if id as comma separated list on end of the comment is allowed.
+     */
+    public boolean isSupportIdListOnEndOfTheComment() {
+        return supportIdListOnEndOfTheComment;
+    }
+
+    
+    /**
+     * Set if id as comma separated list on end of the comment is allowed.
+     * 
+     * @param supportIdListOnEndOfTheComment true to enable id as comma separated list on end of the comment is allowed
+     */
+    public void setSupportIdListOnEndOfTheComment(boolean supportIdListOnEndOfTheComment) {
+        this.supportIdListOnEndOfTheComment = supportIdListOnEndOfTheComment;
+    }
+    
+    
+    /**
      * Check if ID's in comment are supported
      * 
      * @return true if ID's in comment are supported
@@ -371,7 +396,7 @@ public class ChangelogConfig implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(headerSeparator, idCommentCheckPattern, itemSeparator, linkCommentCheckPattern, sectionCharacter, supportBracketsAroundVersion, supportLinkInDescription, 
+        return Objects.hash(headerSeparator, idCommentCheckPattern, itemSeparator, linkCommentCheckPattern, sectionCharacter, supportBracketsAroundVersion, supportLinkInDescription, supportIdListOnEndOfTheComment, 
                             supportReleaseInfo, supportReleaseLink, supportUnreleased);
     }
 
@@ -395,8 +420,8 @@ public class ChangelogConfig implements Serializable {
         
         ChangelogConfig other = (ChangelogConfig) obj;
         return headerSeparator == other.headerSeparator && Objects.equals(idCommentCheckPattern, other.idCommentCheckPattern) && itemSeparator == other.itemSeparator && Objects.equals(linkCommentCheckPattern, other.linkCommentCheckPattern)
-                && sectionCharacter == other.sectionCharacter && supportBracketsAroundVersion == other.supportBracketsAroundVersion && supportLinkInDescription == other.supportLinkInDescription && supportReleaseInfo == other.supportReleaseInfo
-                && supportReleaseLink == other.supportReleaseLink && supportUnreleased == other.supportUnreleased;
+                && sectionCharacter == other.sectionCharacter && supportBracketsAroundVersion == other.supportBracketsAroundVersion && supportLinkInDescription == other.supportLinkInDescription 
+                && supportIdListOnEndOfTheComment == other.supportIdListOnEndOfTheComment && supportReleaseInfo == other.supportReleaseInfo && supportReleaseLink == other.supportReleaseLink && supportUnreleased == other.supportUnreleased;
     }
 
 
@@ -413,6 +438,7 @@ public class ChangelogConfig implements Serializable {
                + ", supportReleaseLink=" + supportReleaseLink
                + ", supportReleaseInfo=" + supportReleaseInfo
                + ", supportLinkInDescription=" + supportLinkInDescription
+               + ", supportIdListOnEndOfTheComment=" + supportIdListOnEndOfTheComment               
                + ", linkCommentCheckExpression=" + linkCommentCheckPattern
                + ", idCommentCheckExpression=" + idCommentCheckPattern
                + "]";
