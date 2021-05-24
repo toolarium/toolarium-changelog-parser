@@ -425,7 +425,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
             } else if (!changeLogChangeTypeSet.remove(section.getChangeType())) {
                 changelogErrorList.addReleaseError(releaseVersion, "Duplicate section type " + section.getChangeType().getTypeName() + EXCLAMATION_MARK);
             } else if (section.getChangeCommentList() == null || section.getChangeCommentList().isEmpty()) {
-                changelogErrorList.addReleaseError(releaseVersion, "Empty comment list in section type " + section.getChangeType() + EXCLAMATION_MARK);
+                changelogErrorList.addReleaseError(releaseVersion, "Empty comment list in section type " + section.getChangeType().getTypeName() + EXCLAMATION_MARK);
             }
                 
             for (String comment : section.getChangeCommentList()) {
