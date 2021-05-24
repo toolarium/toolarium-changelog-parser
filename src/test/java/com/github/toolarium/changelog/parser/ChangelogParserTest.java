@@ -86,7 +86,7 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelog() throws IOException, ParseException {
-        Changelog changelog = assertChangelogFile(Paths.get("src", "test", "resources", "CHANGELOG-valid.md"), null);
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, false, true, true, true, true), Paths.get("src", "test", "resources", "CHANGELOG-valid.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry("Unreleased");
         ChangelogEntry entry = changelog.getEntry(null);

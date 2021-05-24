@@ -46,9 +46,9 @@ public class ChangelogConfig implements Serializable {
         headerSeparator = '-';
         itemSeparator = '-';
         supportUnreleased = true;
-        supportBracketsAroundVersion = false;
+        supportBracketsAroundVersion = true;
         supportReleaseLink = true;
-        supportReleaseInfo = false;
+        supportReleaseInfo = true;
         supportLinkInDescription = true;
         supportIdListOnEndOfTheComment = true;
         setLinkCommentCheckExpression(LINK_IN_CONTENT);
@@ -63,7 +63,7 @@ public class ChangelogConfig implements Serializable {
      * @param itemSeparator the item separator to validate strict; otherwise null
      * @param supportUnreleased true to support unreleased
      * @param supportBracketsAroundVersion true to support brackets around version
-     * @param supportReleaseLink true to  support release link
+     * @param supportReleaseLink true to support release link
      * @param supportReleaseInfo the release information
      * @param supportLinkInDescription true to support link in description
      * @param supportIdListOnEndOfTheComment true to support id as a comma separated list on end of the comment
