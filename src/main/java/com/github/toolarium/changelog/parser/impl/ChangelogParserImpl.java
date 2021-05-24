@@ -336,7 +336,7 @@ public class ChangelogParserImpl implements IChangelogParser {
                     if (item.startsWith("-") || item.startsWith("*")) {
                         String comment = item.substring(1).stripLeading();
                         if (comment.trim().isEmpty()) {
-                            changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Invalid empty comment in section " + section.getChangeType().getTypeName() + "!");
+                            changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Empty comment list in section type " + section.getChangeType().getTypeName() + "!");
                         } else {
                             if (!currentItem.trim().isEmpty()) {
                                 section.add(currentItem);
@@ -346,7 +346,7 @@ public class ChangelogParserImpl implements IChangelogParser {
                         }
                     } else {
                         if (item.isBlank()) {
-                            changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Invalid empty line in section " + section.getChangeType().getTypeName() + "!");
+                            changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Empty comment list in section type " + section.getChangeType().getTypeName() + "!");
                         } else {
                             currentItem += ChangelogContentParser.NEWLINE + item;
                         }
