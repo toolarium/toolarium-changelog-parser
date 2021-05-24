@@ -97,7 +97,9 @@ public class ChangelogErrorList implements Serializable {
                 releaseErrors.put(releaseVersion, errorList);
             }
             
-            errorList.add(error);
+            if (!errorList.contains(error)) {
+                errorList.add(error);
+            }
         } else {
             addGeneralError(ErrorType.HEADER, error);
         }
@@ -242,27 +244,45 @@ public class ChangelogErrorList implements Serializable {
         return "ChangelogErrorList: " + prepareString();
     }
 
-
+    
     /**
      * Create a string representation of the change-log error list.
      * 
      * @return the prepare content. 
      */
     public String prepareString() {
+        return prepareString(null);
+    }
+
+    
+    /**
+     * Create a string representation of the change-log error list.
+     *
+     * @param indent the indentation of each line
+     * @return the prepare content. 
+     */
+    public String prepareString(final String indent) {
+        final String indentation;
+        if (indent != null) {
+            indentation = indent + "- ";
+        } else {
+            indentation = "- ";
+        }
+        
         final StringBuilder result = new StringBuilder();
         
         if (hasGeneralErrors()) {
             for (ErrorType errorType : ErrorType.values()) {
                 List<String> errorList = getGeneralErrors().get(errorType);
                 if (errorList != null && !errorList.isEmpty()) {
-                    getGeneralErrors().get(errorType).stream().forEach((comment) -> result.append("- " + errorType + ": " + comment + "\n"));
+                    getGeneralErrors().get(errorType).stream().forEach((comment) -> result.append(indentation + errorType + ": " + comment + "\n"));
                 }
             }
         }
     
         if (hasReleaseErrors()) {
             for (Map.Entry<ChangelogReleaseVersion, List<String>> e : getReleaseErrors().entrySet()) {
-                e.getValue().stream().forEach((comment) -> result.append("- " + e.getKey() + ": " + comment + "\n"));
+                e.getValue().stream().forEach((comment) -> result.append(indentation + e.getKey() + ": " + comment + "\n"));
             }
         }
     
