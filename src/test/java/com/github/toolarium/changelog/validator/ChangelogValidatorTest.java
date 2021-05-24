@@ -78,7 +78,7 @@ public class ChangelogValidatorTest {
             assertEquals("Section has a link comment which is not allowed: [http://url.com/dd]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             assertEquals("Section has an id in comment which is not allowed: [AB-234]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             assertEquals("Invalid sentence in section type Section: [Changed]!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
-            assertEquals("Empty comment list in section type FIXED!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
+            assertEquals("Empty comment list in section type Fixed!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
             
             releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("1.1.1");
             counter = 0;
@@ -98,6 +98,35 @@ public class ChangelogValidatorTest {
             releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("1.0.1");
             counter = 0;
             assertEquals("Changed section text don't end with a punction mark!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
+        }
+    }
+
+
+    /**
+     * Validate the valid change-log 
+     * 
+     * @throws ValidationException in case of a validation exception
+     * @throws IOException in case of an I/O exception
+     */
+    @Test
+    public void testInvalidChangelogWithoutDuplicatedMessages() throws ValidationException, IOException {
+        try {
+            String description = "\n"
+                    + "All notable changes to this project will be documented in this file.\n"
+                    + "\n"
+                    + "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n"
+                    + "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).";
+            
+            ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-invalid2.md"), "my-project", description, "0.0.1");
+        } catch (ValidationException e) {
+            assertEquals(1, e.getValidationErrorList().size());
+            
+            assertEquals(0, e.getValidationErrorList().getGeneralErrors().size());
+            assertEquals(0, e.getValidationErrorList().countGeneralErrors());
+            
+            ChangelogReleaseVersion releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("0.0.1");
+            int counter = 0;
+            assertEquals("Empty comment list in section type Changed!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
         }
     }
 }
