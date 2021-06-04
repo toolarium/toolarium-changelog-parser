@@ -117,14 +117,51 @@ public class ChangelogValidatorTest {
                     + "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n"
                     + "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).";
             
-            ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-invalid2.md"), "my-project", description, "0.0.1");
+            ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-invalid2.md"), "my-project", description, "0.0.2");
+        } catch (ValidationException e) {
+            assertEquals(2, e.getValidationErrorList().size());
+            
+            assertEquals(0, e.getValidationErrorList().getGeneralErrors().size());
+            assertEquals(0, e.getValidationErrorList().countGeneralErrors());
+            
+            ChangelogReleaseVersion releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("0.0.2");
+            int counter = 0;
+            assertEquals("Empty comment list in section type Changed!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
+            
+            counter = 0;
+            releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("0.0.1");
+            assertEquals("Invalid empty section!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
+            
+            
+        }
+    }
+
+
+    /**
+     * Validate the valid change-log 
+     * 
+     * @throws ValidationException in case of a validation exception
+     * @throws IOException in case of an I/O exception
+     */
+    @Test
+    public void testChangelogWithSupportedEmptySection() throws ValidationException, IOException {
+        try {
+            String description = "\n"
+                    + "All notable changes to this project will be documented in this file.\n"
+                    + "\n"
+                    + "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\n"
+                    + "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).";
+            
+            ChangelogConfig changelogConfig = new ChangelogConfig();
+            changelogConfig.setSupportEmptySection(true);
+            ChangelogFactory.getInstance().validate(changelogConfig, Paths.get("src", "test", "resources", "CHANGELOG-invalid2.md"), "my-project", description, "0.0.2");
         } catch (ValidationException e) {
             assertEquals(1, e.getValidationErrorList().size());
             
             assertEquals(0, e.getValidationErrorList().getGeneralErrors().size());
             assertEquals(0, e.getValidationErrorList().countGeneralErrors());
             
-            ChangelogReleaseVersion releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("0.0.1");
+            ChangelogReleaseVersion releaseVersion = ChangelogFactory.getInstance().createChangelogParser().parseVersion("0.0.2");
             int counter = 0;
             assertEquals("Empty comment list in section type Changed!", e.getValidationErrorList().getReleaseErrors().get(releaseVersion).get(counter++));
         }

@@ -39,6 +39,10 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
      */
     public ChangelogFormatterImpl(ChangelogConfig changelogConfig) {
         this.changelogConfig = changelogConfig;
+        
+        if (changelogConfig == null) {
+            this.changelogConfig = new ChangelogConfig();
+        }
     }
 
 
@@ -46,7 +50,7 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
      * @see com.github.toolarium.changelog.formatter.IChangelogFormatter#format(com.github.toolarium.changelog.dto.Changelog)
      */
     @Override
-    public String format(Changelog changelog) {
+    public String format(Changelog changelog) {        
         String firstSection = "" + changelogConfig.getSectionCharacter();
         String secondSection = "" + firstSection + changelogConfig.getSectionCharacter();
         String thirdSection = "" + secondSection + changelogConfig.getSectionCharacter();
@@ -72,7 +76,7 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
                 }
 
                 if (changelogConfig.isSupportUnreleased() && (version == null || version.isEmpty())) {
-                    version = "Unreleased";
+                    version = Changelog.UNRELEASED_ENTRY_NAME;
                 }
                 
                 if (version != null) {

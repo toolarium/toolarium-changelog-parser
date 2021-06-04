@@ -17,6 +17,7 @@ import com.github.toolarium.changelog.parser.IChangelogParser;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import jptools.parser.ParseException;
 import jptools.resource.FileCacheManager;
@@ -166,7 +167,10 @@ public class ChangelogParserImpl implements IChangelogParser {
             String releaseDate = parser.readDate();
             try {
                 String preapredReleaseDate = StringHelper.trimRight(StringHelper.trimLeft(releaseDate, '('), ')');
-                changelogEntry.setReleaseDate(preapredReleaseDate);
+                
+                if (preapredReleaseDate != null && !preapredReleaseDate.isEmpty()) {
+                    changelogEntry.setReleaseDate(LocalDate.parse(preapredReleaseDate));
+                }
                 
                 if (!preapredReleaseDate.equals(releaseDate) && !dateWarning) {
                     dateWarning = true;
@@ -250,7 +254,7 @@ public class ChangelogParserImpl implements IChangelogParser {
         ChangelogReleaseVersion changelogReleaseVersion = null;
 
         try {
-            if (!"Unreleased".equalsIgnoreCase(releaseVersion.trim())) {
+            if (!Changelog.UNRELEASED_ENTRY_NAME.equalsIgnoreCase(releaseVersion.trim())) {
                 Version v = new Version(releaseVersion.trim());
 
                 if ((v.getMajorInfo() != null && !v.getMajorInfo().isEmpty()) 

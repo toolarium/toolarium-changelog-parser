@@ -42,7 +42,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
      * Constructor for ChangelogValidator
      */
     public ChangelogValidatorImpl() {
-        this(new ChangelogConfig());
+        this(null);
     }
 
     
@@ -53,6 +53,10 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
      */
     public ChangelogValidatorImpl(ChangelogConfig changelogConfig) {
         this.changelogConfig = changelogConfig;
+        
+        if (changelogConfig == null) {
+            this.changelogConfig = new ChangelogConfig();
+        }
     }
 
 
@@ -139,7 +143,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
     protected ChangelogReleaseVersion convertVersion(ChangelogErrorList changelogErrorList, String inputVersion) {
         ChangelogReleaseVersion version = null;
         if (inputVersion != null) {
-            if (!"Unreleased".equals(inputVersion.trim())) {
+            if (!Changelog.UNRELEASED_ENTRY_NAME.equals(inputVersion.trim())) {
                 version = ChangelogFactory.getInstance().createChangelogParser().parseVersion(inputVersion); 
                 
                 if (version == null) {
@@ -411,9 +415,11 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
      * @param sectionList the section list
      */
     protected void validateChangelogSections(ChangelogErrorList changelogErrorList, ChangelogReleaseVersion releaseVersion, List<ChangelogSection> sectionList) {
-        
-        if (sectionList == null) {
-            changelogErrorList.addGeneralError(ErrorType.ENTRIES, "Invalid empty section!");
+        if (sectionList == null || sectionList.isEmpty()) {
+            if (releaseVersion != null && !changelogConfig.isSupportEmptySection()) {
+                changelogErrorList.addReleaseError(releaseVersion, "Invalid empty section!");
+            }
+            
             return;
         }
 
