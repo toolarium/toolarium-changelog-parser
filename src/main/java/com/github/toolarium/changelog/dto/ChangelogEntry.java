@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -76,12 +77,13 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      */
     public ChangelogEntry(ChangelogReleaseVersion releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo, boolean isReleased, boolean wasYanked, List<ChangelogSection> sectionList) {
         this.releaseVersion = releaseVersion;
-        this.releaseDate = releaseDate;
         this.releaseDescription = releaseDescription;
         this.releaseInfo = releaseInfo;
         this.isReleased = isReleased;
         this.wasYanked = wasYanked;
         this.sectionList = sectionList;
+        
+        setReleaseDate(releaseDate);
     }
 
     
@@ -166,11 +168,14 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * 
      * @param date the release date
      */
-    public void setReleaseDate(String date) {
-        if (date != null && !date.isEmpty()) {
-            this.releaseDate = LocalDate.parse(date);
+    public void setReleaseDate(LocalDate date) {
+        this.releaseDate = date;
+        
+        if (releaseDate == null) {
+            releaseDate = LocalDate.now();
         }
     }
+
     
     /**
      * Get the release description.
@@ -223,9 +228,83 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
 
     
     /**
+     * Get a section.
+     *
+     * @param changeType the change type
+     * @return the section or null
+     */
+    public ChangelogSection getSection(ChangelogChangeType changeType) {
+        if (changeType == null || sectionList == null || sectionList.isEmpty()) {
+            return null;
+        }
+        
+        for (ChangelogSection s : sectionList) {
+            if (changeType.equals(s.getChangeType())) {
+                return s;
+            }
+        }
+        
+        return null;
+    }
+
+    
+    /**
+     * Add a section. In case it already exist the existing will be returned.
+     *
+     * @param inputChangeType the change type
+     * @return the section
+     */
+    public ChangelogSection addSection(ChangelogChangeType inputChangeType) {
+        ChangelogChangeType changeType = inputChangeType;
+        if (changeType == null) {
+            changeType = ChangelogChangeType.CHANGED;
+        }
+        
+        if (sectionList == null) {
+            sectionList = new ArrayList<ChangelogSection>();
+        }
+        
+        ChangelogSection changelogSection = getSection(changeType);
+        if (changelogSection == null) {
+            changelogSection = new ChangelogSection(changeType);
+            sectionList.add(changelogSection);
+        }
+        
+        return changelogSection;
+    }
+
+    
+    /**
+     * Remove a section. 
+     *
+     * @param changeType the change type
+     * @return the removed section or null
+     */
+    public ChangelogSection removeSection(ChangelogChangeType changeType) {
+        if (changeType == null || sectionList == null || sectionList.isEmpty()) {
+            return null;
+        }
+        
+        ChangelogSection removedChangelogSection = null;
+        for (Iterator<ChangelogSection> it = sectionList.iterator(); it.hasNext();) {
+            ChangelogSection s = it.next();
+            
+            if (changeType.equals(s.getChangeType())) {
+                removedChangelogSection = s;
+                it.remove();
+                break;
+            }
+            
+        }
+        
+        return removedChangelogSection;
+    }
+
+    
+    /**
      * Describes if it is relased or is unreleased.
      * 
-     * @return true if the entry version/date heading is "Unreleased"
+     * @return true if the entry version/date heading is <code>Unreleased</code>
      */
     public boolean isReleased() { 
         return isReleased; 
