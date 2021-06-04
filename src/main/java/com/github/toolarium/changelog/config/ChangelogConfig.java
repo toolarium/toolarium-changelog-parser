@@ -29,6 +29,7 @@ public class ChangelogConfig implements Serializable {
     private char headerSeparator;
     private char itemSeparator;
     private boolean supportUnreleased;
+    private boolean supportEmptySection;
     private boolean supportBracketsAroundVersion;
     private boolean supportReleaseLink;
     private boolean supportReleaseInfo;
@@ -46,6 +47,7 @@ public class ChangelogConfig implements Serializable {
         headerSeparator = '-';
         itemSeparator = '-';
         supportUnreleased = true;
+        supportEmptySection = false;
         supportBracketsAroundVersion = true;
         supportReleaseLink = true;
         supportReleaseInfo = true;
@@ -62,6 +64,7 @@ public class ChangelogConfig implements Serializable {
      * @param headerSeparator the header separator to validate strict; otherwise null
      * @param itemSeparator the item separator to validate strict; otherwise null
      * @param supportUnreleased true to support unreleased
+     * @param supportEmptySection true to support empty sections
      * @param supportBracketsAroundVersion true to support brackets around version
      * @param supportReleaseLink true to support release link
      * @param supportReleaseInfo the release information
@@ -71,6 +74,7 @@ public class ChangelogConfig implements Serializable {
     public ChangelogConfig(char headerSeparator, 
                            char itemSeparator, 
                            boolean supportUnreleased, 
+                           boolean supportEmptySection,
                            boolean supportBracketsAroundVersion,
                            boolean supportReleaseLink,
                            boolean supportReleaseInfo, 
@@ -81,6 +85,7 @@ public class ChangelogConfig implements Serializable {
         this.headerSeparator = headerSeparator;
         this.itemSeparator = itemSeparator;
         this.supportUnreleased = supportUnreleased;
+        this.supportEmptySection = supportEmptySection;
         this.supportBracketsAroundVersion = supportBracketsAroundVersion;
         this.supportReleaseLink = supportReleaseLink;
         this.supportReleaseInfo = supportReleaseInfo;
@@ -168,6 +173,27 @@ public class ChangelogConfig implements Serializable {
         this.supportUnreleased = supportUnreleased;
     }
 
+    
+    
+    /**
+     * Check if empty section is supported
+     * 
+     * @return true if empty section is supported
+     */
+    public boolean isSupportEmptySection() {
+        return supportEmptySection;
+    }
+
+
+    /**
+     * Set if empty section is supported
+     * 
+     * @param supportEmptySection true to support empty section
+     */
+    public void setSupportEmptySection(boolean supportEmptySection) {
+        this.supportEmptySection = supportEmptySection;
+    }
+    
     
     /**
      * Check if brackets around version is supported
@@ -397,7 +423,7 @@ public class ChangelogConfig implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(headerSeparator, idCommentCheckPattern, itemSeparator, linkCommentCheckPattern, sectionCharacter, supportBracketsAroundVersion, supportLinkInDescription, supportIdListOnEndOfTheComment, 
-                            supportReleaseInfo, supportReleaseLink, supportUnreleased);
+                            supportReleaseInfo, supportReleaseLink, supportUnreleased, supportEmptySection);
     }
 
 
@@ -421,7 +447,8 @@ public class ChangelogConfig implements Serializable {
         ChangelogConfig other = (ChangelogConfig) obj;
         return headerSeparator == other.headerSeparator && Objects.equals(idCommentCheckPattern, other.idCommentCheckPattern) && itemSeparator == other.itemSeparator && Objects.equals(linkCommentCheckPattern, other.linkCommentCheckPattern)
                 && sectionCharacter == other.sectionCharacter && supportBracketsAroundVersion == other.supportBracketsAroundVersion && supportLinkInDescription == other.supportLinkInDescription 
-                && supportIdListOnEndOfTheComment == other.supportIdListOnEndOfTheComment && supportReleaseInfo == other.supportReleaseInfo && supportReleaseLink == other.supportReleaseLink && supportUnreleased == other.supportUnreleased;
+                && supportIdListOnEndOfTheComment == other.supportIdListOnEndOfTheComment && supportReleaseInfo == other.supportReleaseInfo && supportReleaseLink == other.supportReleaseLink 
+                && supportUnreleased == other.supportUnreleased && supportEmptySection == other.supportEmptySection;
     }
 
 
@@ -434,6 +461,7 @@ public class ChangelogConfig implements Serializable {
                + ", headerSeparator=" + headerSeparator 
                + ", itemSeparator=" + itemSeparator 
                + ", supportUnreleased=" + supportUnreleased
+               + ", supportEmptySection=" + supportEmptySection
                + ", supportBracketsAroundVersion=" + supportBracketsAroundVersion
                + ", supportReleaseLink=" + supportReleaseLink
                + ", supportReleaseInfo=" + supportReleaseInfo
