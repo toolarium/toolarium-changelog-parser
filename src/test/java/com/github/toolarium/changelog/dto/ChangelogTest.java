@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.toolarium.changelog.ChangelogFactory;
+import com.github.toolarium.changelog.config.ChangelogConfig;
 import java.io.IOException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,10 @@ import org.junit.jupiter.api.Test;
  * @author patrick
  */
 public class ChangelogTest {
+
+    private static final String ADDED = "### Added\n";
+    private static final String NEW_FEATURE_X = "- New feature x\n";
+
 
     /**
      * Test empty changelog
@@ -98,47 +103,55 @@ public class ChangelogTest {
         
         final String formatDescription =  "# " + projectName + "\n" + description + "\n\n";
         assertEquals(formatDescription 
-                     + "## [1.0.0] - 2015-05-03\n" 
-                     + "### Added\n" 
-                     + "- New feature x\n", 
+                     + "## [ 1.0.0 ] - 2015-05-03\n" 
+                     + ADDED 
+                     + NEW_FEATURE_X, 
                      ChangelogFactory.getInstance().format(null, changelog));
-        
+
+        ChangelogConfig config = new ChangelogConfig();
+        config.setSupportSpaceAroundVersion(false);
+        assertEquals(formatDescription 
+                + "## [1.0.0] - 2015-05-03\n" 
+                + ADDED 
+                + NEW_FEATURE_X, 
+                ChangelogFactory.getInstance().format(config, changelog));
+
         changelog.addEntry("1.0.1", null).addSection(ChangelogChangeType.CHANGED).add("changeset");
         
         assertEquals(formatDescription 
-                + "## [1.0.1] - " + LocalDate.now() + "\n" 
+                + "## [ 1.0.1 ] - " + LocalDate.now() + "\n" 
                 + "### Changed\n" 
                 + "- changeset\n" 
                 + "\n"
-                + "## [1.0.0] - 2015-05-03\n" 
-                + "### Added\n" 
-                + "- New feature x\n", 
+                + "## [ 1.0.0 ] - 2015-05-03\n" 
+                + ADDED 
+                + NEW_FEATURE_X, 
                 ChangelogFactory.getInstance().format(null, changelog));
 
         changelog.addEntry("1.0.1", "2020-12-04");
 
         assertEquals(formatDescription 
-                + "## [1.0.1] - 2020-12-04\n" 
+                + "## [ 1.0.1 ] - 2020-12-04\n" 
                 + "### Changed\n" 
                 + "- changeset\n" 
                 + "\n"
-                + "## [1.0.0] - 2015-05-03\n" 
-                + "### Added\n" 
-                + "- New feature x\n", 
+                + "## [ 1.0.0 ] - 2015-05-03\n" 
+                + ADDED 
+                + NEW_FEATURE_X, 
                 ChangelogFactory.getInstance().format(null, changelog));
         
         changelog.removeEntry("1.0.1");        
         assertEquals(formatDescription 
-                + "## [1.0.0] - 2015-05-03\n" 
-                + "### Added\n" 
-                + "- New feature x\n", 
+                + "## [ 1.0.0 ] - 2015-05-03\n" 
+                + ADDED 
+                + NEW_FEATURE_X, 
                 ChangelogFactory.getInstance().format(null, changelog));
         
         assertNull(changelog.getEntry(version100).removeSection(ChangelogChangeType.DEPRECATED));
         assertEquals(formatDescription 
-                + "## [1.0.0] - 2015-05-03\n" 
-                + "### Added\n" 
-                + "- New feature x\n", 
+                + "## [ 1.0.0 ] - 2015-05-03\n" 
+                + ADDED 
+                + NEW_FEATURE_X, 
                 ChangelogFactory.getInstance().format(null, changelog));
 
         changelog.addEntry(version100, "2016-04-22").addSection(ChangelogChangeType.DEPRECATED).add("changeset 1");
@@ -146,7 +159,7 @@ public class ChangelogTest {
         changelog.getEntry(version100).removeSection(ChangelogChangeType.ADDED);
 
         assertEquals(formatDescription 
-                + "## [1.0.0] - 2016-04-22\n" 
+                + "## [ 1.0.0 ] - 2016-04-22\n" 
                 + "### Deprecated\n" 
                 + "- changeset 1\n"
                 + "\n"

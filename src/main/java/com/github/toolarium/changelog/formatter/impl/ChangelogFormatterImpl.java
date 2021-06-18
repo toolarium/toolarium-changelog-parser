@@ -80,6 +80,10 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
                 }
                 
                 if (version != null) {
+                    if (changelogConfig.isSupportSpaceAroundVersion()) {
+                        version = " " + version + " ";
+                    }
+                    
                     if (changelogConfig.isSupportReleaseLink() && entry.getReleaseLink() != null) {
                         append(result, secondSection + SPACE + "[" + version + "]");
                         append(result, "(" + entry.getReleaseLink().toExternalForm() + ")");

@@ -231,7 +231,7 @@ public class ChangelogParserImpl implements IChangelogParser {
         String releaseLinkError = null;
 
         // read version number
-        String releaseVersion = parser.readVersion();
+        String releaseVersion = parser.readVersion().stripLeading();
         boolean hasBracketsAroundVersion = false;
         if (!releaseVersion.isEmpty() && releaseVersion.startsWith("[")) {
             int idx = releaseVersion.indexOf("]", 1);

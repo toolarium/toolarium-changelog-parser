@@ -77,6 +77,15 @@ public class ChangelogContentParser extends StringParser {
         if (!isEOL()) {
             readBlanks();
             String version = readText(headerStopBytes);
+            
+            if (version.length() == 1 && version.startsWith("[")) {
+                version += readText(headerStopBytes);
+                
+                if (!version.endsWith("]")) {
+                    version += readText(headerStopBytes);
+                }
+            }
+            
             return version.trim();
         }
 
