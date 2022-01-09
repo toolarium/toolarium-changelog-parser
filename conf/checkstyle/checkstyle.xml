@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--    This configuration file was written by the eclipse-cs plugin configuration editor-->
-<!--    Checkstyle-Configuration: toolarium-enum-configuration checkstyle    Description: none-->
+<!--    Checkstyle-Configuration: toolarium-changelog-parser checkstyle    Description: none-->
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
      <!-- property name="localeLanguage" value="en"/> -->
@@ -20,7 +20,7 @@
         <property name="eachLine" value="true"/>
     </module>
 
-     <!-- toolarium-enum-configuration allows 250 line length -->
+     <!-- toolarium-changelog-parser allows 250 line length -->
      <module name="LineLength">
         <property name="fileExtensions" value="java"/>
         <property name="max" value="250"/>
@@ -235,8 +235,7 @@
             <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
         </module>
         <module name="JavadocMethod">
-            <property name="scope" value="private"/>
-               <property name="validateThrows" value="true"/>
+            <property name="validateThrows" value="true"/>
             <property name="allowMissingParamTags" value="false"/>
             <!--<property name="allowMissingThrowsTags" value="true"/>-->
             <property name="allowMissingReturnTag" value="false"/>
@@ -260,18 +259,18 @@
         </module>
         <module name="CommentsIndentation"/>
 
-          <!-- toolarium-enum-configuration add on -->
+          <!-- toolarium-changelog-parser add on -->
           <module name="RegexpSinglelineJava">
                <property name="format" value="System\.(out|err)\."/>
-               <property name="message" value="toolarium-enum-configuration: Please use the logger instead of writing data to standard out or error."/>
+               <property name="message" value="toolarium-changelog-parser: Please use the logger instead of writing data to standard out or error."/>
           </module>
           <module name="RegexpSinglelineJava">
                <property name="format" value="System\.(exit|gc)"/>
-               <property name="message" value="toolarium-enum-configuration: This operation is not allowed."/>
+               <property name="message" value="toolarium-changelog-parser: This operation is not allowed."/>
           </module>
           <module name="RegexpSinglelineJava">
                <property name="format" value="\.(printStackTrace)"/>
-               <property name="message" value="toolarium-enum-configuration: This operation is not allowed."/>
+               <property name="message" value="toolarium-changelog-parser: This operation is not allowed."/>
           </module>
           <module name="JavadocType">
                <property name="severity" value="ignore"/>
@@ -349,12 +348,9 @@
           <module name="StringLiteralEquality"/>
           <module name="SuperFinalize"/>
         <module name="DeclarationOrder"/>
-          <!-- toolarium-enum-configuration add on -->
+          <!-- toolarium-changelog-parser add on -->
      </module>
 
-     <module name="PackageHtml">
-          <property name="severity" value="ignore"/>
-     </module>
      <module name="Translation"/>
      <module name="FileLength">
           <property name="max" value="3000"/>
