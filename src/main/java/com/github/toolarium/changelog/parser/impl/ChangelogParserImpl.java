@@ -344,6 +344,7 @@ public class ChangelogParserImpl implements IChangelogParser {
                     String strippedLeadingWhitespaces = item.stripLeading();
                     if (!item.equals(strippedLeadingWhitespaces) && (strippedLeadingWhitespaces.startsWith(DASH_SIGN) || strippedLeadingWhitespaces.startsWith(STAR_SIGN))) {
                         item = strippedLeadingWhitespaces;
+                        changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Space before comment list in section type " + section.getChangeType().getTypeName() + "!");
                     }
                     
                     if (item.startsWith(DASH_SIGN) || item.startsWith(STAR_SIGN)) {

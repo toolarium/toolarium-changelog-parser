@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [ 0.9.2 ] - 2022-01-09
 ### Changed
- - Updated to newer dependency versions.
+- Updated to newer dependency versions.
+
+### Fixed
+- Heading spaces in items.
 
 ## [ 0.9.1 ] - 2021-06-04
 ### Added

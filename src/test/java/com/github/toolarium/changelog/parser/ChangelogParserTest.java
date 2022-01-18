@@ -19,6 +19,7 @@ import com.github.toolarium.changelog.dto.ChangelogChangeType;
 import com.github.toolarium.changelog.dto.ChangelogEntry;
 import com.github.toolarium.changelog.dto.ChangelogErrorList;
 import com.github.toolarium.changelog.dto.ChangelogErrorList.ErrorType;
+import com.github.toolarium.changelog.dto.ChangelogReleaseVersion;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,9 +129,14 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * @throws ParseException In case of a parse error
      */
     @Test public void testValidChangelogWithSpacesBeginningComment() throws IOException, ParseException {
+        ChangelogErrorList changelogErrorList = new ChangelogErrorList();
+        changelogErrorList.addReleaseError(new ChangelogReleaseVersion(1, 0, 2, null), "Space before comment list in section type Changed!");
+        changelogErrorList.addReleaseError(new ChangelogReleaseVersion(1, 0, 0, null), "Space before comment list in section type Changed!");
+        
         Changelog changelog = assertChangelog(new ChangelogConfig('-', '-', true, false, false, false, true, true, true, true),
                                               readContent(Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid.md")),
-                                              parseFile(Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid-with-spaces-beginning-comment.md")), null);
+                                              parseFile(Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid-with-spaces-beginning-comment.md")),
+                                              changelogErrorList);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry(Changelog.UNRELEASED_ENTRY_NAME);
         ChangelogEntry entry = changelog.getEntry(null);

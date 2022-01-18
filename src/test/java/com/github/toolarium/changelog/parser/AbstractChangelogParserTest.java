@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.toolarium.changelog.ChangelogFactory;
 import com.github.toolarium.changelog.config.ChangelogConfig;
 import com.github.toolarium.changelog.dto.Changelog;
+import com.github.toolarium.changelog.dto.ChangelogErrorList;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 import jptools.resource.FileCacheManager;
 import jptools.util.ByteArray;
 
@@ -32,7 +32,7 @@ public abstract class AbstractChangelogParserTest {
      * @return the change-log
      * @throws IOException In case of I/O error
      */
-    protected Changelog assertChangelogFile(Path filename, List<String> errorMessageList) throws IOException {
+    protected Changelog assertChangelogFile(Path filename, ChangelogErrorList errorMessageList) throws IOException {
         ChangelogConfig changelogConfig = new ChangelogConfig();
         return assertChangelog(changelogConfig, readContent(filename), parseFile(filename), errorMessageList);
     }
@@ -47,7 +47,7 @@ public abstract class AbstractChangelogParserTest {
      * @return the change-log
      * @throws IOException In case of I/O error
      */
-    protected Changelog assertChangelogFile(ChangelogConfig changelogConfig, Path filename, List<String> errorMessageList) throws IOException {
+    protected Changelog assertChangelogFile(ChangelogConfig changelogConfig, Path filename, ChangelogErrorList errorMessageList) throws IOException {
         return assertChangelog(changelogConfig, readContent(filename), parseFile(filename), errorMessageList);
     }
 
@@ -61,7 +61,7 @@ public abstract class AbstractChangelogParserTest {
      * @return the change-log
      * @throws IOException In case of I/O error
      */
-    protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, List<String> errorMessageList) throws IOException {
+    protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, ChangelogErrorList errorMessageList) throws IOException {
         return assertChangelog(changelogConfig, content, ChangelogFactory.getInstance().parse(content), errorMessageList);
     }
     
@@ -76,7 +76,7 @@ public abstract class AbstractChangelogParserTest {
      * @return the change-log
      * @throws IOException In case of I/O error
      */
-    protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, ChangelogParseResult changelogParseResult, List<String> errorMessageList) throws IOException {
+    protected Changelog assertChangelog(ChangelogConfig changelogConfig, String content, ChangelogParseResult changelogParseResult, ChangelogErrorList errorMessageList) throws IOException {
         assertEquals(content, format(changelogConfig, changelogParseResult.getChangelog()));
         if (errorMessageList == null || errorMessageList.isEmpty()) {
             assertTrue(changelogParseResult.getChangelogErrorList().isEmpty(), "Expected no errors: " + changelogParseResult.getChangelogErrorList());
