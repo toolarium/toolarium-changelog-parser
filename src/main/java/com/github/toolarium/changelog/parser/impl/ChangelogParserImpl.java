@@ -33,7 +33,10 @@ import jptools.util.version.Version;
  * @author patrick
  */
 public class ChangelogParserImpl implements IChangelogParser {
+    private static final String STAR_SIGN = "*";
+    private static final String DASH_SIGN = "-";
     private boolean dateWarning;
+
     
     /**
      * Constructor for ChangelogParser
@@ -337,7 +340,13 @@ public class ChangelogParserImpl implements IChangelogParser {
                 String currentItem = "";
                 for (int i = 0; i < itemSplit.length; i++) {
                     String item = itemSplit[i];
-                    if (item.startsWith("-") || item.startsWith("*")) {
+                    
+                    String strippedLeadingWhitespaces = item.stripLeading();
+                    if (!item.equals(strippedLeadingWhitespaces) && (strippedLeadingWhitespaces.startsWith(DASH_SIGN) || strippedLeadingWhitespaces.startsWith(STAR_SIGN))) {
+                        item = strippedLeadingWhitespaces;
+                    }
+                    
+                    if (item.startsWith(DASH_SIGN) || item.startsWith(STAR_SIGN)) {
                         String comment = item.substring(1).stripLeading();
                         if (comment.trim().isEmpty()) {
                             changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Empty comment list in section type " + section.getChangeType().getTypeName() + "!");
