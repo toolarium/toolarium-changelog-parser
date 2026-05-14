@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ChangelogTest {
 
-    private static final String MY_PROJECT = MY_PROJECT;
+    private static final String MY_PROJECT = "my-project";
     private static final String ADDED = "### Added\n";
     private static final String NEW_FEATURE_X = "- New feature x\n";
 
