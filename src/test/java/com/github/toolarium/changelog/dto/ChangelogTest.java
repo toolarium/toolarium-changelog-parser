@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ChangelogTest {
 
+    private static final String MY_PROJECT = MY_PROJECT;
     private static final String ADDED = "### Added\n";
     private static final String NEW_FEATURE_X = "- New feature x\n";
 
@@ -34,8 +35,8 @@ public class ChangelogTest {
      */
     @Test
     public void createChangelog() {
-        Changelog changelog = new Changelog("my-project", "my \n description \n \n ");
-        assertEquals("my-project", changelog.getProjectName());
+        Changelog changelog = new Changelog(MY_PROJECT, "my \n description \n \n ");
+        assertEquals(MY_PROJECT, changelog.getProjectName());
         assertEquals("my \n description \n \n ", changelog.getDescription());
         assertNotNull(changelog.getEntries());
         assertTrue(changelog.getEntries().isEmpty());
@@ -61,7 +62,7 @@ public class ChangelogTest {
      */
     @Test
     public void addChangelogEntry() throws IOException {
-        final String projectName = "my-project";
+        final String projectName = MY_PROJECT;
         final String description = "my \n description \n \n ";
         Changelog changelog = new Changelog(projectName, description);
         assertEquals(projectName, changelog.getProjectName());
@@ -175,7 +176,7 @@ public class ChangelogTest {
      */
     @Test
     public void addPreBuiltEntry() {
-        Changelog changelog = new Changelog("my-project", "description.");
+        Changelog changelog = new Changelog(MY_PROJECT, "description.");
         assertTrue(changelog.getEntries().isEmpty());
 
         ChangelogReleaseVersion version = new ChangelogReleaseVersion(2, 0, 0, null);
@@ -213,7 +214,7 @@ public class ChangelogTest {
      */
     @Test
     public void getEntriesReturnsUnmodifiableList() {
-        Changelog changelog = new Changelog("my-project", "description.");
+        Changelog changelog = new Changelog(MY_PROJECT, "description.");
         changelog.addEntry("1.0.0", null);
         assertThrows(UnsupportedOperationException.class, () -> {
             changelog.getEntries().add(new ChangelogEntry());
@@ -278,7 +279,7 @@ public class ChangelogTest {
      */
     @Test
     public void addEntryWithBlankVersion() {
-        Changelog changelog = new Changelog("my-project", "description.");
+        Changelog changelog = new Changelog(MY_PROJECT, "description.");
         ChangelogEntry entry = changelog.addEntry("  ", null);
         assertNotNull(entry);
         assertNull(entry.getReleaseVersion());
@@ -296,6 +297,8 @@ public class ChangelogTest {
 
     /**
      * Test PERFORMANCE change type
+     *
+     * @throws IOException In case of an IO error
      */
     @Test
     public void performanceChangeType() throws IOException {
