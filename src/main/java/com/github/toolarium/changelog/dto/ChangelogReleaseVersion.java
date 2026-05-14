@@ -236,7 +236,7 @@ public class ChangelogReleaseVersion implements Comparable<ChangelogReleaseVersi
         }
 
         int result = compareValues(changelogReleaseVersion.getBuildNumber(), getBuildNumber());
-        if ((changelogReleaseVersion.getBuildNumber() == -1 && getBuildNumber() == -1) || (result == 0)) {
+        if (result == 0) {
             return compareValues(changelogReleaseVersion.buildInfo, buildInfo);
         }
 

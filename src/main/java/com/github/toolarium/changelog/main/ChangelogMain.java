@@ -5,6 +5,8 @@
  */
 package com.github.toolarium.changelog.main;
 
+import com.github.toolarium.ansi.AnsiStringBuilder;
+import com.github.toolarium.ansi.color.ForegroundColor;
 import com.github.toolarium.changelog.ChangelogFactory;
 import com.github.toolarium.changelog.Version;
 import com.github.toolarium.changelog.config.ChangelogConfig;
@@ -16,38 +18,34 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Pattern;
-import javax.net.ssl.HttpsURLConnection;
-import jptools.logger.Logger;
-import jptools.parser.ParameterParser;
-import jptools.util.ParameterExecutionHolder;
-import jptools.util.application.AbstractApplication;
-import jptools.util.application.GenericApplicationStarter;
 
 
 /**
  * Implement the change-log main application.
- * 
+ *
  * @author patrick
  */
-public class ChangelogMain extends AbstractApplication {
-    private static final Logger log = Logger.getLogger(ChangelogMain.class);
+public class ChangelogMain {
+    private static final PrintStream OUT = System.out; // CHECKSTYLE_IGNORE_THIS_LINE
     private static final String VALIDATE = "--validate";
     private static final String NO_HEADER = "--no-header";
     private static final String VERBOSE = "--verbose";
+    private static final Pattern LINK_PATTERN = Pattern.compile(ChangelogConfig.LINK_IN_CONTENT);
 
     private ChangelogConfig changelogConfig;
     private String file;
     private boolean suppressHeader;
     private boolean verbose;
 
-    
+
     /**
      * Constructor for ChangelogMain
      */
@@ -57,157 +55,148 @@ public class ChangelogMain extends AbstractApplication {
         suppressHeader = false;
         verbose = false;
     }
-    
-    
+
+
     /**
      * The main entry-point of an application.
+     *
      * @param args The arguments to run the main method.
      */
     public static void main(String[] args) {
-        List<String> baseArray = new ArrayList<>(Arrays.asList(new String[] {"-type", ChangelogMain.class.getName() }));
-        
-        // add all arguments
-        baseArray.addAll(Arrays.asList(args));
-        
-        GenericApplicationStarter.main(baseArray.toArray(new String[baseArray.size()]));
+        ChangelogMain app = new ChangelogMain();
+        app.parseArguments(args);
+        app.execute();
     }
 
-    
+
     /**
-     * Sets the change-log file
+     * Parse command line arguments.
      *
-     * @param filename the filename
+     * @param args the arguments
      */
-    public void setChangelogFilename(String filename) {
-        this.file = filename;
-    }
-    
-    
-    /**
-     * Sets the suppress header
-     */
-    public void setSuppressHeader() {
-        suppressHeader = true;
-    }
-    
-    
-    /**
-     * Sets the verbose mode
-     */
-    public void setVerbose() {
-        verbose = true;
-    }
-    
-    
-    //////////////////////////////////////////////////////////////////////////
-    // methods form the jptools.util.application.AbstractApplication
-    //////////////////////////////////////////////////////////////////////////
-
-    
-    /**
-     * @see jptools.util.application.IApplication#getVersionNumber()
-     */
-    @Override
-    public String getVersionNumber() {
-        return Version.getVersion();
+    protected void parseArguments(String[] args) {
+        int idx = 0;
+        while (idx < args.length) {
+            if (VALIDATE.equals(args[idx]) && idx + 1 < args.length) {
+                file = args[idx + 1];
+                idx += 2;
+            } else if (NO_HEADER.equals(args[idx])) {
+                suppressHeader = true;
+                idx++;
+            } else if (VERBOSE.equals(args[idx])) {
+                verbose = true;
+                idx++;
+            } else {
+                if (!args[idx].startsWith("-")) {
+                    file = args[idx];
+                }
+                idx++;
+            }
+        }
     }
 
-    
-    /**
-     * @see jptools.util.application.AbstractApplication#getAdditionalVersionText()
-     */
-    @Override
-    protected String getAdditionalVersionText() {
-        return "The changelog validator.\n";
-    }
 
-    
     /**
-     * @see jptools.util.application.AbstractApplication#initParameters()
+     * Execute the changelog validation.
      */
-    @Override
-    protected List<ParameterExecutionHolder> initParameters() {
-        List<ParameterExecutionHolder> list = new ArrayList<>();
-        list.add(new ParameterExecutionHolder(VALIDATE, this, "setChangelogFilename", null, "Sets the changelog to validate.", true));
-        list.add(new ParameterExecutionHolder(NO_HEADER, this, "setSuppressHeader", null, "Suppress the additional header information.", true));
-        list.add(new ParameterExecutionHolder(VERBOSE, this, "setVerbose", null, "Enable verbose mode.", true));
-        
-        return list;
-    }
-
-    
-    /**
-     * @see jptools.util.application.AbstractApplication#printApplicationStartup()
-     */
-    @Override
-    public void printApplicationStartup() {
-    }
-    
-    
-    /**
-     * @see jptools.util.application.AbstractApplication#executeCalls(java.util.List, jptools.parser.ParameterParser)
-     */
-    @Override
-    protected void executeCalls(List<ParameterExecutionHolder> parameterCalls, ParameterParser parser)
-        throws Exception {
-        if (parser.hasParameters()) {
-            super.executeCalls(parameterCalls, parser);
-        } 
-
+    protected void execute() {
         if (file == null || file.isBlank()) {
-            logToConsole("Could not find the changelog file.", true);
-            printHelp(false);
+            logToConsole(new AnsiStringBuilder()
+                    .color(ForegroundColor.YELLOW, "Could not find the changelog file.")
+                    .toString());
+            printHelp();
             return;
         }
 
         try {
             // check if we have remote file
-            Pattern pattern = Pattern.compile(ChangelogConfig.LINK_IN_CONTENT);
-            if (pattern.matcher(file).matches()) {
-                Changelog changelog = null;
-                ChangelogErrorList parseChangelogErrorList = null;
-                try {
-                    String content = readContent(file);
-                    ChangelogParseResult result = ChangelogFactory.getInstance().parse(content);
-                    parseChangelogErrorList = result.getChangelogErrorList();
-                    
-                    ChangelogFactory.getInstance().validate(changelogConfig, result.getChangelog());
-                    changelog = result.getChangelog();
-                } catch (ValidationException e) {
-                    
-                    if (e.getValidationErrorList() != null && !e.getValidationErrorList().isEmpty()) {
-                        parseChangelogErrorList.add(e.getValidationErrorList());
-                    }
-                    
-                    throw new ValidationException(e.getMessage(), parseChangelogErrorList);
-                }
-
-                if (parseChangelogErrorList != null && !parseChangelogErrorList.isEmpty()) {
-                    throw new ValidationException("Changelog parse errors.", parseChangelogErrorList);
- 
-                }
-                if (verbose && changelog != null) {
-                    logToConsole("Validation change-log of file " + file + ":", true);
-                    logToConsole(ChangelogFactory.getInstance().format(changelogConfig, changelog), true);
-                }
+            if (LINK_PATTERN.matcher(file).matches()) {
+                executeRemoteValidation();
             } else {
-                Changelog changelog = ChangelogFactory.getInstance().validate(changelogConfig, Paths.get(file));
-                if (verbose && changelog != null) {
-                    logToConsole("Validation change-log of file " + file + ":", true);
-                    logToConsole(ChangelogFactory.getInstance().format(changelogConfig, changelog), true);
-                }
+                executeLocalValidation();
             }
         } catch (IOException e) {
-            logToConsole("Could not read file " + file + ": " + e.getMessage(), true);
+            logToConsole(new AnsiStringBuilder()
+                    .color(ForegroundColor.RED, "Could not read file ")
+                    .bold(file)
+                    .color(ForegroundColor.RED, ": " + e.getMessage())
+                    .toString());
         } catch (ValidationException e) {
             if (!suppressHeader) {
-                super.printApplicationStartup();
-                logToConsole("Validation errors found in file " + file + ":", true);
+                printVersion();
+                logToConsole(new AnsiStringBuilder()
+                        .bold().color(ForegroundColor.RED, "Validation errors found in file ")
+                        .resetBold().color(ForegroundColor.RED, file + ":")
+                        .toString());
             }
-            
+
             if (e.getValidationErrorList() != null) {
-                logToConsole(e.getValidationErrorList().prepareString(), true);
+                logToConsole(new AnsiStringBuilder()
+                        .color(ForegroundColor.YELLOW, e.getValidationErrorList().prepareString())
+                        .toString());
             }
+        }
+    }
+
+
+    /**
+     * Execute validation for a remote changelog file.
+     *
+     * @throws IOException In case of I/O errors
+     * @throws ValidationException In case of validation errors
+     */
+    protected void executeRemoteValidation() throws IOException, ValidationException {
+        Changelog changelog = null;
+        ChangelogErrorList parseChangelogErrorList = null;
+        try {
+            String content = readContent(file);
+            ChangelogParseResult result = ChangelogFactory.getInstance().parse(content);
+            parseChangelogErrorList = result.getChangelogErrorList();
+
+            ChangelogFactory.getInstance().validate(changelogConfig, result.getChangelog());
+            changelog = result.getChangelog();
+        } catch (ValidationException e) {
+            if (e.getValidationErrorList() != null && !e.getValidationErrorList().isEmpty()) {
+                parseChangelogErrorList.add(e.getValidationErrorList());
+            }
+
+            throw new ValidationException(e.getMessage(), parseChangelogErrorList);
+        }
+
+        if (parseChangelogErrorList != null && !parseChangelogErrorList.isEmpty()) {
+            throw new ValidationException("Changelog parse errors.", parseChangelogErrorList);
+        }
+
+        printVerboseOutput(changelog);
+    }
+
+
+    /**
+     * Execute validation for a local changelog file.
+     *
+     * @throws IOException In case of I/O errors
+     * @throws ValidationException In case of validation errors
+     */
+    protected void executeLocalValidation() throws IOException, ValidationException {
+        Changelog changelog = ChangelogFactory.getInstance().validate(changelogConfig, Paths.get(file));
+        printVerboseOutput(changelog);
+    }
+
+
+    /**
+     * Print verbose changelog output if enabled.
+     *
+     * @param changelog the validated changelog
+     * @throws IOException In case of formatting errors
+     */
+    protected void printVerboseOutput(Changelog changelog) throws IOException {
+        if (verbose && changelog != null) {
+            logToConsole(new AnsiStringBuilder()
+                    .color(ForegroundColor.GREEN, "Validated change-log of file ")
+                    .bold(file)
+                    .color(ForegroundColor.GREEN, ":")
+                    .toString());
+            logToConsole(ChangelogFactory.getInstance().format(changelogConfig, changelog));
         }
     }
 
@@ -216,34 +205,70 @@ public class ChangelogMain extends AbstractApplication {
      * Read the content
      *
      * @param url the url
-     * @return the content 
+     * @return the content
      * @throws MalformedURLException In case of invalid url exception
      * @throws IOException In case of I/O errors
      */
     protected String readContent(String url) throws MalformedURLException, IOException {
-        URL myUrl = new URL(url);
-        HttpsURLConnection conn = (HttpsURLConnection)myUrl.openConnection();
-        InputStream is = conn.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
+        URL myUrl = URI.create(url).toURL();
+        HttpURLConnection conn = (HttpURLConnection) myUrl.openConnection();
+        conn.setConnectTimeout(30000);
+        conn.setReadTimeout(30000);
 
-        String content = "";
-        String inputLine;
-        while ((inputLine = br.readLine()) != null) {
-            content += inputLine + "\n";
+        try (InputStream is = conn.getInputStream();
+             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+             BufferedReader br = new BufferedReader(isr)) {
+
+            StringBuilder content = new StringBuilder();
+            String inputLine;
+            while ((inputLine = br.readLine()) != null) {
+                content.append(inputLine).append("\n");
+            }
+
+            return content.toString();
+        } finally {
+            conn.disconnect();
         }
-   
-        br.close();
-        
-        return content;
     }
 
-    
+
     /**
-     * @see jptools.util.application.AbstractApplication#getLogger()
+     * Print version information.
      */
-    @Override
-    protected Logger getLogger() {
-        return log;
+    protected void printVersion() {
+        logToConsole(new AnsiStringBuilder()
+                .append("toolarium-changelog-parser v")
+                .bold().color(ForegroundColor.CYAN, Version.getVersion()).resetBold()
+                .toString());
+    }
+
+
+    /**
+     * Print help information.
+     */
+    protected void printHelp() {
+        printVersion();
+        logToConsole(new AnsiStringBuilder()
+                .append("Usage: changelog-parser [options]")
+                .toString());
+        logToConsole(new AnsiStringBuilder()
+                .append("  ").bold(VALIDATE).append(" <file>  Sets the changelog to validate.")
+                .toString());
+        logToConsole(new AnsiStringBuilder()
+                .append("  ").bold(NO_HEADER).append("         Suppress the additional header information.")
+                .toString());
+        logToConsole(new AnsiStringBuilder()
+                .append("  ").bold(VERBOSE).append("          Enable verbose mode.")
+                .toString());
+    }
+
+
+    /**
+     * Log a message to the console using stdout.
+     *
+     * @param message the message to log
+     */
+    protected void logToConsole(String message) {
+        OUT.println(message);
     }
 }

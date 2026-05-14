@@ -48,7 +48,7 @@ public interface IChangelogParser {
      * Parse a version
      *
      * @param inputVersion the version to parse following the Semantic Versioning (https://semver.org/spec/v2.0.0.html).
-     * @return the parsed version
+     * @return the parsed version or null if the input is not a valid version
      */
     ChangelogReleaseVersion parseVersion(String inputVersion);
 }

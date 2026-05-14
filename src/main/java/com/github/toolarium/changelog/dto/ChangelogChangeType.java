@@ -28,8 +28,11 @@ public enum ChangelogChangeType {
     FIXED("Fixed"),
 
     /** SECURITY */
-    SECURITY("Security");
+    SECURITY("Security"),
     
+    /** PERFORMANCE */
+    PERFORMANCE("Performance");
+
     private String typeName;
 
     

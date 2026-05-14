@@ -138,8 +138,26 @@ public class ChangelogValidatorTest {
 
 
     /**
-     * Validate the valid change-log 
-     * 
+     * Validate with an invalid reference version to verify the error message contains the input version
+     *
+     * @throws ValidationException in case of a validation exception
+     * @throws IOException in case of an I/O exception
+     */
+    @Test
+    public void testInvalidReferenceVersion() throws ValidationException, IOException {
+        try {
+            ChangelogFactory.getInstance().validate(new ChangelogConfig(), Paths.get("src", "test", "resources", "CHANGELOG-valid.md"), null, null, "invalid-version");
+        } catch (ValidationException e) {
+            assertNotNull(e.getValidationErrorList().getGeneralErrors().get(ErrorType.REFERENCE));
+            assertEquals(1, e.getValidationErrorList().getGeneralErrors().get(ErrorType.REFERENCE).size());
+            assertEquals("Invalid reference version [invalid-version]!", e.getValidationErrorList().getGeneralErrors().get(ErrorType.REFERENCE).get(0));
+        }
+    }
+
+
+    /**
+     * Validate the valid change-log
+     *
      * @throws ValidationException in case of a validation exception
      * @throws IOException in case of an I/O exception
      */

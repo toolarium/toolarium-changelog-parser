@@ -14,17 +14,15 @@ import com.github.toolarium.changelog.dto.ChangelogReleaseVersion;
 import com.github.toolarium.changelog.dto.ChangelogSection;
 import com.github.toolarium.changelog.parser.ChangelogParseResult;
 import com.github.toolarium.changelog.parser.IChangelogParser;
+import com.github.toolarium.common.util.EnumUtil;
+import com.github.toolarium.common.util.StringUtil;
+import com.github.toolarium.common.version.Version;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import jptools.parser.ParseException;
-import jptools.resource.FileCacheManager;
-import jptools.util.ByteArray;
-import jptools.util.EnumUtil;
-import jptools.util.StringHelper;
-import jptools.util.version.Version;
 
 
 /**
@@ -35,9 +33,9 @@ import jptools.util.version.Version;
 public class ChangelogParserImpl implements IChangelogParser {
     private static final String STAR_SIGN = "*";
     private static final String DASH_SIGN = "-";
-    private boolean dateWarning;
+    private volatile boolean dateWarning;
 
-    
+
     /**
      * Constructor for ChangelogParser
      */
@@ -55,8 +53,8 @@ public class ChangelogParserImpl implements IChangelogParser {
             throw new IOException("Invalid filename input!");
         }
         
-        ByteArray content = (ByteArray) new FileCacheManager().getFile(filename.toString());
-        return parseContent(content.trim((byte) ' ').toString());
+        String content = Files.readString(filename);
+        return parseContent(content.strip());
     }
 
 
@@ -95,10 +93,10 @@ public class ChangelogParserImpl implements IChangelogParser {
             try {
                 // all change-log entries
                 readChangelogEntryList(parser, changelogErrorList, result.getChangelog());
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 result.getChangelogErrorList().addGeneralError(ErrorType.ENTRIES, e.getMessage());
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             result.getChangelogErrorList().addGeneralError(ErrorType.HEADER, e.getMessage());
         }
 
@@ -117,8 +115,8 @@ public class ChangelogParserImpl implements IChangelogParser {
     public ChangelogReleaseVersion parseVersion(String inputVersion) {
         try {
             Version v = new Version(inputVersion.trim());
-            return new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getBuildNumber(), v.getBuildInfo());
-        } catch (ParseException e) {
+            return new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getPatchNumber(), v.getPatchSuffix());
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }
@@ -135,8 +133,12 @@ public class ChangelogParserImpl implements IChangelogParser {
             return;
         }
 
-        parser.readChangelogSeparator();
-        String name = parser.readEOL();
+        String sep = parser.readChangelogSeparator();
+        String name = "";
+        if (!sep.isEmpty()) {
+            name = parser.readEOL();
+        }
+
         if (name == null || name.isBlank()) {
             changelogParseResult.getChangelogErrorList().addGeneralError(ChangelogErrorList.ErrorType.CHANGELOG, "Invalid empty changelog name!");
         }
@@ -169,7 +171,7 @@ public class ChangelogParserImpl implements IChangelogParser {
             // read date
             String releaseDate = parser.readDate();
             try {
-                String preapredReleaseDate = StringHelper.trimRight(StringHelper.trimLeft(releaseDate, '('), ')');
+                String preapredReleaseDate = StringUtil.getInstance().trimRight(StringUtil.getInstance().trimLeft(releaseDate, '('), ')');
                 
                 if (preapredReleaseDate != null && !preapredReleaseDate.isEmpty()) {
                     changelogEntry.setReleaseDate(LocalDate.parse(preapredReleaseDate));
@@ -194,8 +196,8 @@ public class ChangelogParserImpl implements IChangelogParser {
             String releaseInfo = parser.readHeaderEnd();
             if (releaseInfo != null && !releaseInfo.isBlank()) {
                 if (releaseInfo.indexOf("YANKED") >= 0 || releaseInfo.indexOf("[YANKED]") >= 0) {
-                    releaseInfo = StringHelper.replace(releaseInfo, "[YANKED]", "").trim();
-                    releaseInfo = StringHelper.replace(releaseInfo, "YANKED", "").trim();
+                    releaseInfo = releaseInfo.replace("[YANKED]", "").trim();
+                    releaseInfo = releaseInfo.replace("YANKED", "").trim();
 
                     if (releaseInfo.isBlank()) {
                         releaseInfo = null;
@@ -212,7 +214,7 @@ public class ChangelogParserImpl implements IChangelogParser {
             String releaseDescription = parser.readDescription();
             changelogEntry.setDescription(releaseDescription);
 
-            changelog.getEntries().add(changelogEntry);
+            changelog.addEntry(changelogEntry);
             readChangelogSectionList(parser, changelogErrorList, changelogEntry);
         }
     }
@@ -241,11 +243,11 @@ public class ChangelogParserImpl implements IChangelogParser {
             if (idx > 0) {
                 hasBracketsAroundVersion = true;
                 
-                String releaseLink = StringHelper.trimRight(StringHelper.trimLeft(releaseVersion.substring(idx + 1), '('), ')');
+                String releaseLink = StringUtil.getInstance().trimRight(StringUtil.getInstance().trimLeft(releaseVersion.substring(idx + 1), '('), ')');
                 if (releaseLink != null && !releaseLink.isBlank()) {
                     try {
-                        changelogEntry.setReleaseLink(new URL(releaseLink));
-                    } catch (Exception e) {
+                        changelogEntry.setReleaseLink(URI.create(releaseLink).toURL());
+                    } catch (IllegalArgumentException | java.net.MalformedURLException e) {
                         releaseLinkError = "Invalid relase link [" + releaseLink + "]: " + e.getMessage() + "!";
                     }                
                 }
@@ -260,18 +262,18 @@ public class ChangelogParserImpl implements IChangelogParser {
             if (!Changelog.UNRELEASED_ENTRY_NAME.equalsIgnoreCase(releaseVersion.trim())) {
                 Version v = new Version(releaseVersion.trim());
 
-                if ((v.getMajorInfo() != null && !v.getMajorInfo().isEmpty()) 
-                        || (v.getMinorInfo() != null && !v.getMinorInfo().isEmpty())) {
-                    throw new ParseException("Invalid version format: " + releaseVersion + "!");
+                if ((v.getMajorSuffix() != null && !v.getMajorSuffix().isEmpty())
+                        || (v.getMinorSuffix() != null && !v.getMinorSuffix().isEmpty())) {
+                    throw new IllegalArgumentException("Invalid version format: " + releaseVersion + "!");
                 }
 
-                String buildInfo = StringHelper.trimLeft(StringHelper.trimLeft(v.getBuildInfo(),'-'),'.');
-                changelogReleaseVersion = new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getBuildNumber(), buildInfo);                    
+                String buildInfo = StringUtil.getInstance().trimLeft(StringUtil.getInstance().trimLeft(v.getPatchSuffix(),'-'),'.');
+                changelogReleaseVersion = new ChangelogReleaseVersion(v.getMajorNumber(), v.getMinorNumber(), v.getPatchNumber(), buildInfo);                    
             }
 
             changelogEntry.setReleaseVersion(changelogReleaseVersion);
             changelogEntry.setHasBracketsAroundVersion(hasBracketsAroundVersion);
-        } catch (ParseException ev) {
+        } catch (IllegalArgumentException ev) {
             changelogErrorList.addReleaseError(changelogReleaseVersion, "Invalid relase version [" + releaseVersion + "]!");
         }
 
@@ -299,7 +301,7 @@ public class ChangelogParserImpl implements IChangelogParser {
         while (!parser.isEOL() && sep.length() == 3) {
             String changelogType = parser.readEOL();
 
-            ChangelogChangeType changelogChangeType = EnumUtil.valueOf(ChangelogChangeType.class, changelogType);
+            ChangelogChangeType changelogChangeType = EnumUtil.getInstance().valueOf(ChangelogChangeType.class, changelogType);
             if (changelogChangeType == null) {
                 changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Invalid changelog change type: [" + changelogType + "]!");
             } else if (!changelogChangeType.getTypeName().equals(changelogType)) {
@@ -307,7 +309,7 @@ public class ChangelogParserImpl implements IChangelogParser {
             }
 
             ChangelogSection section = new ChangelogSection(changelogChangeType);
-            changelogEntry.getSectionList().add(section);
+            changelogEntry.addSection(section);
 
             try {
                 readChangelogSectionItemList(parser, changelogErrorList, changelogEntry, section);
@@ -337,38 +339,38 @@ public class ChangelogParserImpl implements IChangelogParser {
         if (itemContent != null && !itemContent.isEmpty()) {
             String[] itemSplit = itemContent.split("" + ChangelogContentParser.NEWLINE);
             if (itemSplit != null) {
-                String currentItem = "";
+                StringBuilder currentItem = new StringBuilder();
                 for (int i = 0; i < itemSplit.length; i++) {
                     String item = itemSplit[i];
-                    
+
                     String strippedLeadingWhitespaces = item.stripLeading();
                     if (!item.equals(strippedLeadingWhitespaces) && (strippedLeadingWhitespaces.startsWith(DASH_SIGN) || strippedLeadingWhitespaces.startsWith(STAR_SIGN))) {
                         item = strippedLeadingWhitespaces;
                         changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Space before comment list in section type " + section.getChangeType().getTypeName() + "!");
                     }
-                    
+
                     if (item.startsWith(DASH_SIGN) || item.startsWith(STAR_SIGN)) {
                         String comment = item.substring(1).stripLeading();
                         if (comment.trim().isEmpty()) {
                             changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Empty comment list in section type " + section.getChangeType().getTypeName() + "!");
                         } else {
-                            if (!currentItem.trim().isEmpty()) {
-                                section.add(currentItem);
+                            if (currentItem.toString().trim().length() > 0) {
+                                section.add(currentItem.toString());
                             }
-                            
-                            currentItem = comment;
+
+                            currentItem = new StringBuilder(comment);
                         }
                     } else {
                         if (item.isBlank()) {
                             changelogErrorList.addReleaseError(changelogEntry.getReleaseVersion(), "Empty comment list in section type " + section.getChangeType().getTypeName() + "!");
                         } else {
-                            currentItem += ChangelogContentParser.NEWLINE + item;
+                            currentItem.append(ChangelogContentParser.NEWLINE).append(item);
                         }
                     }
                 }
 
-                if (!currentItem.isBlank()) {
-                    section.add(currentItem);
+                if (!currentItem.toString().isBlank()) {
+                    section.add(currentItem.toString());
                 }
             }
         }

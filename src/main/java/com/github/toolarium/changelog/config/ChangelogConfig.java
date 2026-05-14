@@ -22,7 +22,7 @@ public class ChangelogConfig implements Serializable {
     public static final String IDENTIFIER_IN_CONTENT = "[a-zA-Z0_9]{0,3}+[\\-\\_\\:]{1}+[0-9]{3,}+";
     
     /** Regular expression: link in a content pattern */
-    public static final String LINK_IN_CONTENT = "((http?|https|ftp|file)://)+((W|w){3}.)?[a-zA-Z0-9\\-\\_]+\\.([a-zA-Z0-9\\-\\.\\_\\~\\/\\%])+";
+    public static final String LINK_IN_CONTENT = "(https?|ftp|file)://([Ww]{3}\\.)?[a-zA-Z0-9\\-\\_]+\\.[a-zA-Z0-9\\-\\.\\_\\~\\/\\%]+";
     
     private static final long serialVersionUID = 2583751968740322695L;
     private char sectionCharacter;

@@ -9,6 +9,7 @@ import com.github.toolarium.changelog.ChangelogFactory;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -77,16 +78,19 @@ public class Changelog implements Serializable {
      * @return the entries
      */
     public List<ChangelogEntry> getEntries() {
-        return entries;
+        if (entries == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(entries);
     }
 
-    
+
     /**
      * Search a version entry.
      *
      * @param version the version to search
      * @return the entry or null
-     * @throws ParseException In case the input version is not in a proper format
+     * @throws IllegalArgumentException In case the input version is not in a proper format
      */
     public ChangelogEntry getEntry(String version)  {
         if (entries == null || entries.isEmpty()) {
@@ -121,7 +125,7 @@ public class Changelog implements Serializable {
      */
     public ChangelogEntry addEntry(String inputVersion, String inputReleaseDate) {
         String version = inputVersion;
-        if (version == null || UNRELEASED_ENTRY_NAME.equals(version.trim())) {
+        if (version == null || version.isBlank() || UNRELEASED_ENTRY_NAME.equals(version.trim())) {
             version = UNRELEASED_ENTRY_NAME;
         }
 
@@ -144,6 +148,19 @@ public class Changelog implements Serializable {
         }
         
         return changelogEntry;
+    }
+
+
+    /**
+     * Add a pre-built entry to the changelog.
+     *
+     * @param entry the entry to add
+     */
+    public void addEntry(ChangelogEntry entry) {
+        if (entries == null) {
+            entries = new ArrayList<>();
+        }
+        entries.add(entry);
     }
 
 

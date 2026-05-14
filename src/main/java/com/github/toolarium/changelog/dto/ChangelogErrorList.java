@@ -7,6 +7,7 @@ package com.github.toolarium.changelog.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,10 @@ public class ChangelogErrorList implements Serializable {
      * @return the general errors
      */
     public Map<ErrorType, List<String>> getGeneralErrors() {
-        return generalErrors;
+        if (generalErrors == null) {
+            return null;
+        }
+        return Collections.unmodifiableMap(generalErrors);
     }
 
     
@@ -181,7 +185,10 @@ public class ChangelogErrorList implements Serializable {
      * @return the release errors
      */
     public Map<ChangelogReleaseVersion, List<String>> getReleaseErrors() {
-        return releaseErrors;
+        if (releaseErrors == null) {
+            return null;
+        }
+        return Collections.unmodifiableMap(releaseErrors);
     }
 
     

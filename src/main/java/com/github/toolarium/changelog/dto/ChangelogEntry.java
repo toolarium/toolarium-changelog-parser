@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -60,7 +61,7 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @param releaseInfo the release information 
      */
     public ChangelogEntry(ChangelogReleaseVersion releaseVersion, LocalDate releaseDate, String releaseDescription, String releaseInfo) {
-        this(releaseVersion, releaseDate, releaseDescription, releaseInfo, true, false, new ArrayList<ChangelogSection>());
+        this(releaseVersion, releaseDate, releaseDescription, releaseInfo, releaseVersion != null, false, new ArrayList<ChangelogSection>());
     }
     
     
@@ -169,10 +170,10 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @param date the release date
      */
     public void setReleaseDate(LocalDate date) {
-        this.releaseDate = date;
-        
-        if (releaseDate == null) {
-            releaseDate = LocalDate.now();
+        if (date == null) {
+            this.releaseDate = LocalDate.now();
+        } else {
+            this.releaseDate = date;
         }
     }
 
@@ -223,10 +224,13 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
      * @return the section list
      */
     public List<ChangelogSection> getSectionList() {
-        return sectionList;
+        if (sectionList == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(sectionList);
     }
 
-    
+
     /**
      * Get a section.
      *
@@ -273,7 +277,20 @@ public class ChangelogEntry implements Comparable<ChangelogEntry>, Serializable 
         return changelogSection;
     }
 
-    
+
+    /**
+     * Add a pre-built section to the entry.
+     *
+     * @param section the section to add
+     */
+    public void addSection(ChangelogSection section) {
+        if (sectionList == null) {
+            sectionList = new ArrayList<>();
+        }
+        sectionList.add(section);
+    }
+
+
     /**
      * Remove a section. 
      *

@@ -23,7 +23,6 @@ import com.github.toolarium.changelog.dto.ChangelogReleaseVersion;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import jptools.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
 
@@ -85,9 +84,9 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * Parse and compare a change-log
      * 
      * @throws IOException In case of I/O error
-     * @throws ParseException In case of a parse error
+     *
      */
-    @Test public void testValidChangelog() throws IOException, ParseException {
+    @Test public void testValidChangelog() throws IOException {
         Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, false, false, false, true, true, true, true), Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry(Changelog.UNRELEASED_ENTRY_NAME);
@@ -126,9 +125,9 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * Parse and compare a change-log
      * 
      * @throws IOException In case of I/O error
-     * @throws ParseException In case of a parse error
+     *
      */
-    @Test public void testValidChangelogWithSpacesBeginningComment() throws IOException, ParseException {
+    @Test public void testValidChangelogWithSpacesBeginningComment() throws IOException {
         ChangelogErrorList changelogErrorList = new ChangelogErrorList();
         changelogErrorList.addReleaseError(new ChangelogReleaseVersion(1, 0, 2, null), "Space before comment list in section type Changed!");
         changelogErrorList.addReleaseError(new ChangelogReleaseVersion(1, 0, 0, null), "Space before comment list in section type Changed!");
@@ -174,9 +173,9 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * Parse and compare a change-log
      * 
      * @throws IOException In case of I/O error
-     * @throws ParseException In case of a parse error
+     *
      */
-    @Test public void testValidChangelogDifferentFormat() throws IOException, ParseException {
+    @Test public void testValidChangelogDifferentFormat() throws IOException {
         Changelog changelog = assertChangelogFile(new ChangelogConfig('/', '*', true, false, false, false, true, false, true, true), Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-different-format-valid.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry(Changelog.UNRELEASED_ENTRY_NAME);
@@ -214,9 +213,9 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
      * Parse and compare a change-log
      * 
      * @throws IOException In case of I/O error
-     * @throws ParseException In case of a parse error
+     *
      */
-    @Test public void testValidChangelogWithBracket() throws IOException, ParseException {
+    @Test public void testValidChangelogWithBracket() throws IOException {
         Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', true, false, true, true, true, false, true, true), Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid-with-brackets.md"), null);
 
         ChangelogEntry unReleaseEntry = changelog.getEntry(Changelog.UNRELEASED_ENTRY_NAME);
@@ -251,12 +250,37 @@ public class ChangelogParserTest extends AbstractChangelogParserTest {
 
 
     /**
-     * Parse and compare a change-log
-     * 
+     * Parse and compare a change-log with Performance section
+     *
      * @throws IOException In case of I/O error
-     * @throws ParseException In case of a parse error
      */
-    @Test public void testUnsupportedUnreleased() throws IOException, ParseException {
+    @Test public void testChangelogWithPerformanceSection() throws IOException {
+        Changelog changelog = assertChangelogFile(new ChangelogConfig('-', '-', false, false, false, false, false, false, true, true), Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-with-performance.md"), null);
+
+        ChangelogEntry entry = changelog.getEntry(VERSION_1_0_0);
+        assertNotNull(entry);
+        assertTrue(entry.isReleased());
+        assertEquals(2, entry.getSectionList().size());
+
+        assertEquals(ChangelogChangeType.PERFORMANCE, entry.getSectionList().get(0).getChangeType());
+        assertNotNull(entry.getSectionList().get(0).getChangeCommentList());
+        assertEquals(2, entry.getSectionList().get(0).getChangeCommentList().size());
+        assertEquals("Optimized database queries.", entry.getSectionList().get(0).getChangeCommentList().get(0));
+        assertEquals("Reduced memory footprint.", entry.getSectionList().get(0).getChangeCommentList().get(1));
+
+        assertEquals(ChangelogChangeType.CHANGED, entry.getSectionList().get(1).getChangeType());
+        assertEquals(1, entry.getSectionList().get(1).getChangeCommentList().size());
+        assertEquals("Updated dependencies.", entry.getSectionList().get(1).getChangeCommentList().get(0));
+    }
+
+
+    /**
+     * Parse and compare a change-log
+     *
+     * @throws IOException In case of I/O error
+     *
+     */
+    @Test public void testUnsupportedUnreleased() throws IOException {
         Path filename = Paths.get(TEST_RESOURCE_PATH, "CHANGELOG-valid.md");
         ChangelogParseResult changelogParseResult = parseFile(filename);
         assertTrue(changelogParseResult.getChangelogErrorList().isEmpty(), "Expected no errors: " + changelogParseResult.getChangelogErrorList());

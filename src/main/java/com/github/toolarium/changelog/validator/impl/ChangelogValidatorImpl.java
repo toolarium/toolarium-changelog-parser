@@ -20,9 +20,8 @@ import com.github.toolarium.changelog.validator.ValidationException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -147,7 +146,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
                 version = ChangelogFactory.getInstance().createChangelogParser().parseVersion(inputVersion); 
                 
                 if (version == null) {
-                    changelogErrorList.addGeneralError(ErrorType.REFERENCE, "Invalid reference version [" + version + END_MESSAGE);
+                    changelogErrorList.addGeneralError(ErrorType.REFERENCE, "Invalid reference version [" + inputVersion + END_MESSAGE);
                 }
             }
         }
@@ -423,7 +422,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
             return;
         }
 
-        Set<ChangelogChangeType> changeLogChangeTypeSet = new HashSet<>(Arrays.asList(ChangelogChangeType.values()));
+        Set<ChangelogChangeType> changeLogChangeTypeSet = EnumSet.allOf(ChangelogChangeType.class);
         for (ChangelogSection section : sectionList) {
             if (section.getChangeType() == null) {
                 
@@ -562,8 +561,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
      * @return the reference list
      */
     protected List<ChangelogEntry> createSortedChangelogEntryReferenceList(List<ChangelogEntry> entries) {
-        List<ChangelogEntry> sortedEntries = new ArrayList<ChangelogEntry>();
-        sortedEntries.addAll(entries);
+        List<ChangelogEntry> sortedEntries = new ArrayList<>(entries);
         Collections.sort(sortedEntries);
         return sortedEntries;
     }

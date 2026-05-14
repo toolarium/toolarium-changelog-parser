@@ -10,6 +10,7 @@ import com.github.toolarium.changelog.dto.Changelog;
 import com.github.toolarium.changelog.dto.ChangelogEntry;
 import com.github.toolarium.changelog.dto.ChangelogSection;
 import com.github.toolarium.changelog.formatter.IChangelogFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
     public String format(Changelog changelog) {        
         String firstSection = "" + changelogConfig.getSectionCharacter();
         String secondSection = "" + firstSection + changelogConfig.getSectionCharacter();
-        String thirdSection = "" + secondSection + changelogConfig.getSectionCharacter();
+        final String thirdSection = "" + secondSection + changelogConfig.getSectionCharacter();
         
         StringBuilder result = new StringBuilder();
         append(result, firstSection + SPACE + changelog.getProjectName());
@@ -66,6 +67,7 @@ public class ChangelogFormatterImpl implements IChangelogFormatter {
 
         List<ChangelogEntry> entries = changelog.getEntries();
         if (entries != null) {
+            entries = new ArrayList<>(entries);
             Collections.sort(entries);
             for (ChangelogEntry entry : entries) {
                 newline(result);

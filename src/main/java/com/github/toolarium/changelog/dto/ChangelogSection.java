@@ -7,6 +7,7 @@ package com.github.toolarium.changelog.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -73,7 +74,10 @@ public class ChangelogSection implements Serializable {
      * @return the change comment list
      */
     public List<String> getChangeCommentList() {
-        return changeCommentList;
+        if (changeCommentList == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(changeCommentList);
     }
 
 

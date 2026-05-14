@@ -13,9 +13,8 @@ import com.github.toolarium.changelog.config.ChangelogConfig;
 import com.github.toolarium.changelog.dto.Changelog;
 import com.github.toolarium.changelog.dto.ChangelogErrorList;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import jptools.resource.FileCacheManager;
-import jptools.util.ByteArray;
 
 
 /**
@@ -122,7 +121,6 @@ public abstract class AbstractChangelogParserTest {
      * @throws IOException In case of an I/O error
      */
     protected String readContent(Path filename) throws IOException {
-        ByteArray content = (ByteArray) new FileCacheManager().getFile(filename.toString());
-        return content.toString().replace("\r", "");
+        return Files.readString(filename).replace("\r", "");
     }
 }

@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [ 1.0.1 ] - 2022-02-17
+## [ 1.1.0 ] - 2026-05-14
+### Added
+- New change type PERFORMANCE in ChangelogChangeType.
+
+### Changed
+- Replaced jptools dependency with toolarium-common and toolarium-ansi.
+- Refactored ChangelogMain to remove jptools dependency, using built-in argument parsing.
+- Improved DTO encapsulation: getEntries, getSectionList, getChangeCommentList, getGeneralErrors and getReleaseErrors now return unmodifiable collections.
+- Improved URL regex pattern in ChangelogConfig.
+
+### Fixed
+- Fixed invalid reference version error message displaying null instead of the input version.
+- Fixed setReleaseDate to default to current date only when input is null.
 
 ## [ 1.0.0 ] - 2022-02-17
 ### Security

@@ -6,68 +6,66 @@
 package com.github.toolarium.changelog.parser.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import jptools.parser.EOLException;
-import jptools.parser.ParseException;
-import jptools.parser.StopBytes;
-import jptools.parser.StringParser;
-import jptools.util.ByteArray;
+import java.util.Set;
 
 
 /**
  * Defines the change-log content parser.
- * 
+ *
  * @author patrick
  */
-public class ChangelogContentParser extends StringParser {
+public class ChangelogContentParser {
     /** The newline */
     public static final char NEWLINE = '\n';
 
-    private static final long serialVersionUID = 12321321321321L;
-    
-    private StopBytes headerStopBytes = new StopBytes();
-    private StopBytes newlineStopBytes = new StopBytes();
-    private StopBytes descriptionStopBytes = new StopBytes();
+    private final Set<Character> headerStopChars = new HashSet<>();
+    private final Set<Character> newlineStopChars = new HashSet<>();
+    private final Set<Character> descriptionStopChars = new HashSet<>();
+    private final Set<Character> defaultStopChars = new HashSet<>();
 
     private char sectionCharacter;
+    private String data;
+    private int pos;
 
-    
+
     /**
      * Constructor for ChangelogParser
      */
     public ChangelogContentParser() {
-        super();
-
         this.sectionCharacter = '#';
 
-        headerStopBytes.addStopBytes(" ");
-        headerStopBytes.addStopBytes("" + NEWLINE);
-        descriptionStopBytes.addStopBytes("" + NEWLINE);
-        descriptionStopBytes.addStopBytes("" + sectionCharacter);
-        newlineStopBytes.addStopBytes("" + NEWLINE);
-    }
-
-    
-    /**
-     * @see jptools.parser.StringParser#init(java.lang.String)
-     */
-    @Override
-    public void init(String data) {
-        super.init(data.replace("\r", ""));
-        super.addStopBytes("" + sectionCharacter);
+        headerStopChars.add(' ');
+        headerStopChars.add(NEWLINE);
+        descriptionStopChars.add(NEWLINE);
+        descriptionStopChars.add(sectionCharacter);
+        newlineStopChars.add(NEWLINE);
     }
 
 
     /**
-     * @see jptools.parser.Parser#init(jptools.util.ByteArray)
+     * Initialize the parser with the given data.
+     *
+     * @param input the input data
      */
-    @Override
-    public void init(ByteArray data) {
-        super.init(data.replace(ByteArray.CR, new ByteArray("")));
-        super.addStopBytes("" + sectionCharacter);
+    public void init(String input) {
+        this.data = input.replace("\r", "");
+        this.pos = 0;
+        defaultStopChars.add(sectionCharacter);
     }
 
-    
+
+    /**
+     * Check if end of input is reached.
+     *
+     * @return true if at end
+     */
+    public boolean isEOL() {
+        return pos >= data.length();
+    }
+
+
     /**
      * Read the version
      *
@@ -76,16 +74,26 @@ public class ChangelogContentParser extends StringParser {
     public String readVersion() {
         if (!isEOL()) {
             readBlanks();
-            String version = readText(headerStopBytes);
-            
-            if (version.length() == 1 && version.startsWith("[")) {
-                version += readText(headerStopBytes);
-                
-                if (!version.endsWith("]")) {
-                    version += readText(headerStopBytes);
+            String version = readText(headerStopChars);
+
+            if (version.startsWith("[") && !version.endsWith("]")) {
+                // read everything until closing bracket and the next stop char
+                int closeBracket = data.indexOf(']', pos);
+                if (closeBracket >= 0) {
+                    version += data.substring(pos, closeBracket + 1);
+                    pos = closeBracket + 1;
+
+                    // also read a trailing link like (url)
+                    if (!isEOL() && currentChar() == '(') {
+                        int closeParen = data.indexOf(')', pos);
+                        if (closeParen >= 0) {
+                            version += data.substring(pos, closeParen + 1);
+                            pos = closeParen + 1;
+                        }
+                    }
                 }
             }
-            
+
             return version.trim();
         }
 
@@ -101,14 +109,14 @@ public class ChangelogContentParser extends StringParser {
     public String readDate() {
         if (!isEOL()) {
             readBlanks();
-            String version = readText(headerStopBytes);
+            String version = readText(headerStopChars);
             return version.trim();
         }
 
         return "";
     }
 
-    
+
     /**
      * Read the header end
      *
@@ -122,7 +130,7 @@ public class ChangelogContentParser extends StringParser {
         return "";
     }
 
-    
+
     /**
      * Read the description
      *
@@ -132,32 +140,31 @@ public class ChangelogContentParser extends StringParser {
         return readChangelogText();
     }
 
-    
+
     /**
      * Read the header separator.
-     * 
-     * @return the read separator 
+     *
+     * @return the read separator
      */
     public Character readHeaderSeparator() {
         Character result = null;
-        
+
         try {
             readBlanks();
-            if (!isEOL() && (getCurrentByte() == (byte)'-' || getCurrentByte() == (byte)'/')) {
-                result = (char)getCurrentByte();
-                readNext();
+            if (!isEOL() && (currentChar() == '-' || currentChar() == '/')) {
+                result = currentChar();
+                advance();
             }
 
             readBlanks();
-
-        } catch (ParseException e) {
-            // NOP
+        } catch (IndexOutOfBoundsException e) {
+            // end of parseable content reached
         }
-        
+
         return result;
     }
 
-    
+
     /**
      * Read until end of line.
      *
@@ -165,11 +172,9 @@ public class ChangelogContentParser extends StringParser {
      */
     public String readEOL() {
         if (!isEOL()) {
-            String result = readText(newlineStopBytes);
-            try {
-                readNext();
-            } catch (EOLException e) {
-                // NOP
+            String result = readText(newlineStopChars);
+            if (!isEOL()) {
+                pos++;
             }
 
             return result;
@@ -178,27 +183,28 @@ public class ChangelogContentParser extends StringParser {
         return "";
     }
 
-    
+
     /**
      * Read the changelog separator
      *
      * @return the changelog separator
      */
     public String readChangelogSeparator() {
-        String sep = "";
-        byte stopByte = (byte) sectionCharacter;
-        try {
-            do {
-                sep += "" + readSeparator();
-            } while (!isEOL() && stopByte == getCurrentByte());
-        } catch (EOLException e) {
-            // NOP
+        // skip leading newlines
+        while (!isEOL() && currentChar() == NEWLINE) {
+            pos++;
         }
 
-        return sep;
+        StringBuilder sep = new StringBuilder();
+        while (!isEOL() && currentChar() == sectionCharacter) {
+            sep.append(readSeparatorChar());
+        }
+
+        readBlanks();
+        return sep.toString();
     }
-    
-    
+
+
     /**
      * Read section items
      *
@@ -230,11 +236,11 @@ public class ChangelogContentParser extends StringParser {
                 }
             }
         }
-        
+
         return result;
     }
-    
-    
+
+
     /**
      * Read the description
      *
@@ -245,34 +251,126 @@ public class ChangelogContentParser extends StringParser {
             return "";
         }
 
-        String text = "";
+        StringBuilder text = new StringBuilder();
         boolean end = false;
         while (!isEOL() && !end) {
-            String result = readBytes(descriptionStopBytes).toString();
+            String result = readUntil(descriptionStopChars);
             if (!result.isEmpty()) {
-                text += result;
+                text.append(result);
             }
-            
+
             try {
-                if (getCurrentByte() == (byte) NEWLINE) {
-                    String s = readSeparator(descriptionStopBytes).toString();
-                    text += s;
+                if (!isEOL() && currentChar() == NEWLINE) {
+                    String s = readSeparatorWithStopChars(descriptionStopChars);
+                    text.append(s);
                 } else { // separator
                     if (!result.isEmpty()) {
-                        text += readSeparator(descriptionStopBytes);
+                        text.append(readSeparatorWithStopChars(descriptionStopChars));
                     } else {
                         end = true;
                     }
                 }
-            } catch (EOLException e) {
-                // NOP
+            } catch (IndexOutOfBoundsException e) {
+                // end of line reached
             }
         }
 
-        while (!text.isEmpty() && text.endsWith("" + NEWLINE)) {
-            text = text.substring(0, text.length() - 1);
+        String result = text.toString();
+        while (!result.isEmpty() && result.endsWith("" + NEWLINE)) {
+            result = result.substring(0, result.length() - 1);
         }
 
-        return text;
+        return result;
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
+    // Internal parser methods
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Get the current character.
+     *
+     * @return the current character
+     */
+    private char currentChar() {
+        return data.charAt(pos);
+    }
+
+
+    /**
+     * Advance position by one.
+     */
+    private void advance() {
+        pos++;
+    }
+
+
+    /**
+     * Skip blanks (spaces and tabs).
+     */
+    private void readBlanks() {
+        while (!isEOL() && (currentChar() == ' ' || currentChar() == '\t')) {
+            pos++;
+        }
+    }
+
+
+    /**
+     * Read text until a stop character or default stop character is encountered.
+     *
+     * @param stopChars the stop characters
+     * @return the text read
+     */
+    private String readText(Set<Character> stopChars) {
+        int start = pos;
+        while (!isEOL() && !stopChars.contains(currentChar()) && !defaultStopChars.contains(currentChar())) {
+            pos++;
+        }
+        return data.substring(start, pos);
+    }
+
+
+    /**
+     * Read bytes until a stop character or default stop character is encountered.
+     * Same as readText but kept for semantic clarity.
+     *
+     * @param stopChars the stop characters
+     * @return the text read
+     */
+    private String readUntil(Set<Character> stopChars) {
+        return readText(stopChars);
+    }
+
+
+    /**
+     * Read a single separator character and advance.
+     *
+     * @return the separator character
+     */
+    private char readSeparatorChar() {
+        char ch = currentChar();
+        pos++;
+        return ch;
+    }
+
+
+    /**
+     * Read separator characters until a non-stop character is found.
+     * Stops after consuming a newline to avoid crossing into the next section.
+     *
+     * @param stopChars the stop characters
+     * @return the separator text read
+     */
+    private String readSeparatorWithStopChars(Set<Character> stopChars) {
+        int start = pos;
+        while (!isEOL() && (stopChars.contains(currentChar()) || defaultStopChars.contains(currentChar()))) {
+            boolean isNewline = currentChar() == NEWLINE;
+            pos++;
+            if (isNewline) {
+                break;
+            }
+        }
+        return data.substring(start, pos);
     }
 }

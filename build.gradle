@@ -2,7 +2,6 @@
  * build.gradle
  *
  * Copyright by toolarium-changelog-parser, all rights reserved.
- * MIT License: https://mit-license.org
  */
 plugins {
   id 'com.github.johnrengelman.shadow' version '7.0.0'
@@ -22,15 +21,7 @@ mainClassName = "com.github.toolarium.changelog.main.ChangelogMain"
  * Define project dependencies
  ****************************************************************************************/
 dependencies {
-    // see https://docs.gradle.org/current/userguide/java_library_plugin.html
-
     // utilities
-    implementation "net.sf.jptools:jptools:1.7.7"
-    //implementation "net.sf.jptools:jptools:1.7.7:slf4j-adapter"
-
-    // logging
-    //implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"
-    //testRuntimeOnly "ch.qos.logback:logback-classic:${commonGradleLogbackVersion}"
-    
-    testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
+    implementation "com.github.toolarium:toolarium-common:1.0.0"
+    implementation "com.github.toolarium:toolarium-ansi:0.9.0"
 }

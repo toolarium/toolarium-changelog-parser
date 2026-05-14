@@ -30,7 +30,7 @@ public final class ChangelogFactory {
      *
      * @author patrick
      */
-    private static class HOLDER {
+    private static final class HOLDER {
         static final ChangelogFactory INSTANCE = new ChangelogFactory();
     }
 

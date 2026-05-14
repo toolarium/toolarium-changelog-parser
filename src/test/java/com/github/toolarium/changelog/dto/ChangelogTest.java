@@ -8,6 +8,7 @@ package com.github.toolarium.changelog.dto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.toolarium.changelog.ChangelogFactory;
@@ -158,13 +159,152 @@ public class ChangelogTest {
         changelog.addEntry(version100, null).addSection(ChangelogChangeType.CHANGED).add("changeset 2");
         changelog.getEntry(version100).removeSection(ChangelogChangeType.ADDED);
 
-        assertEquals(formatDescription 
-                + "## [ 1.0.0 ] - 2016-04-22\n" 
-                + "### Deprecated\n" 
+        assertEquals(formatDescription
+                + "## [ 1.0.0 ] - 2016-04-22\n"
+                + "### Deprecated\n"
                 + "- changeset 1\n"
                 + "\n"
-                + "### Changed\n" 
-                + "- changeset 2\n", 
+                + "### Changed\n"
+                + "- changeset 2\n",
                 ChangelogFactory.getInstance().format(null, changelog));
+    }
+
+
+    /**
+     * Test addEntry with a pre-built ChangelogEntry
+     */
+    @Test
+    public void addPreBuiltEntry() {
+        Changelog changelog = new Changelog("my-project", "description.");
+        assertTrue(changelog.getEntries().isEmpty());
+
+        ChangelogReleaseVersion version = new ChangelogReleaseVersion(2, 0, 0, null);
+        ChangelogEntry entry = new ChangelogEntry(version, LocalDate.of(2024, 1, 15));
+        entry.addSection(ChangelogChangeType.ADDED).add("New feature.");
+        changelog.addEntry(entry);
+
+        assertEquals(1, changelog.getEntries().size());
+        assertNotNull(changelog.getEntry("2.0.0"));
+        assertEquals(version, changelog.getEntry("2.0.0").getReleaseVersion());
+    }
+
+
+    /**
+     * Test addSection with a pre-built ChangelogSection
+     */
+    @Test
+    public void addPreBuiltSection() {
+        ChangelogEntry entry = new ChangelogEntry(new ChangelogReleaseVersion(1, 0, 0, null), LocalDate.of(2024, 1, 15));
+        assertNotNull(entry.getSectionList());
+        assertTrue(entry.getSectionList().isEmpty());
+
+        ChangelogSection section = new ChangelogSection(ChangelogChangeType.FIXED);
+        section.add("Fixed a bug.");
+        entry.addSection(section);
+
+        assertEquals(1, entry.getSectionList().size());
+        assertEquals(ChangelogChangeType.FIXED, entry.getSectionList().get(0).getChangeType());
+        assertEquals("Fixed a bug.", entry.getSectionList().get(0).getChangeCommentList().get(0));
+    }
+
+
+    /**
+     * Test that getEntries returns an unmodifiable list
+     */
+    @Test
+    public void getEntriesReturnsUnmodifiableList() {
+        Changelog changelog = new Changelog("my-project", "description.");
+        changelog.addEntry("1.0.0", null);
+        assertThrows(UnsupportedOperationException.class, () -> {
+            changelog.getEntries().add(new ChangelogEntry());
+        });
+    }
+
+
+    /**
+     * Test that getSectionList returns an unmodifiable list
+     */
+    @Test
+    public void getSectionListReturnsUnmodifiableList() {
+        ChangelogEntry entry = new ChangelogEntry(new ChangelogReleaseVersion(1, 0, 0, null), LocalDate.of(2024, 1, 15));
+        entry.addSection(ChangelogChangeType.ADDED).add("Feature.");
+        assertThrows(UnsupportedOperationException.class, () -> {
+            entry.getSectionList().add(new ChangelogSection(ChangelogChangeType.FIXED));
+        });
+    }
+
+
+    /**
+     * Test that getChangeCommentList returns an unmodifiable list
+     */
+    @Test
+    public void getChangeCommentListReturnsUnmodifiableList() {
+        ChangelogSection section = new ChangelogSection(ChangelogChangeType.ADDED);
+        section.add("A comment.");
+        assertThrows(UnsupportedOperationException.class, () -> {
+            section.getChangeCommentList().add("another");
+        });
+    }
+
+
+    /**
+     * Test that getGeneralErrors returns an unmodifiable map
+     */
+    @Test
+    public void getGeneralErrorsReturnsUnmodifiableMap() {
+        ChangelogErrorList errorList = new ChangelogErrorList();
+        errorList.addGeneralError(ChangelogErrorList.ErrorType.HEADER, "test error");
+        assertThrows(UnsupportedOperationException.class, () -> {
+            errorList.getGeneralErrors().put(ChangelogErrorList.ErrorType.CHANGELOG, null);
+        });
+    }
+
+
+    /**
+     * Test that getReleaseErrors returns an unmodifiable map
+     */
+    @Test
+    public void getReleaseErrorsReturnsUnmodifiableMap() {
+        ChangelogErrorList errorList = new ChangelogErrorList();
+        errorList.addReleaseError(new ChangelogReleaseVersion(1, 0, 0, null), "test error");
+        assertThrows(UnsupportedOperationException.class, () -> {
+            errorList.getReleaseErrors().put(new ChangelogReleaseVersion(2, 0, 0, null), null);
+        });
+    }
+
+
+    /**
+     * Test addEntry with blank version treats it as Unreleased
+     */
+    @Test
+    public void addEntryWithBlankVersion() {
+        Changelog changelog = new Changelog("my-project", "description.");
+        ChangelogEntry entry = changelog.addEntry("  ", null);
+        assertNotNull(entry);
+        assertNull(entry.getReleaseVersion());
+        assertEquals(1, changelog.getEntries().size());
+
+        ChangelogEntry unreleased = changelog.getEntry(Changelog.UNRELEASED_ENTRY_NAME);
+        assertEquals(entry, unreleased);
+
+        // blank and empty should return the same unreleased entry
+        ChangelogEntry entry2 = changelog.addEntry("", null);
+        assertEquals(entry, entry2);
+        assertEquals(1, changelog.getEntries().size());
+    }
+
+
+    /**
+     * Test PERFORMANCE change type
+     */
+    @Test
+    public void performanceChangeType() throws IOException {
+        Changelog changelog = new Changelog("test-project", "description.");
+        ChangelogEntry entry = changelog.addEntry("1.0.0", "2024-01-15");
+        entry.addSection(ChangelogChangeType.PERFORMANCE).add("Optimized queries.");
+
+        String formatted = ChangelogFactory.getInstance().format(null, changelog);
+        assertTrue(formatted.contains("### Performance"));
+        assertTrue(formatted.contains("- Optimized queries."));
     }
 }
