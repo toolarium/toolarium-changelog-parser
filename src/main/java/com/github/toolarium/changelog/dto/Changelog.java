@@ -92,7 +92,7 @@ public class Changelog implements Serializable {
      * @return the entry or null
      * @throws IllegalArgumentException In case the input version is not in a proper format
      */
-    public ChangelogEntry getEntry(String version)  {
+    public ChangelogEntry getEntry(String version) throws IllegalArgumentException {
         if (entries == null || entries.isEmpty()) {
             return null;
         }
