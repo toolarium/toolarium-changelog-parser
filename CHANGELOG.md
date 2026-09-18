@@ -22,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed dead unreachable branch in validateVersionExist().
 - Removed swallowed IndexOutOfBoundsException in readChangelogText() that could mask parser bugs.
 
-## [ 1.1.2 ] - 2026-07-21
-
 ## [ 1.1.1 ] - 2026-07-21
 ### Fixed
 - Backward compatibility to java 1.8.
