@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [ 1.1.2 ] - 2026-09-18
+### Security
+- Removed file:// scheme from URL regex to prevent local filesystem access via CLI argument.
+
+### Changed
+- Updated toolarium-common dependency to v1.1.0.
+- Improved remote content fetch: wrap URI.create() IllegalArgumentException as IOException for consistent error handling.
+- Added 10 MB size limit when fetching remote changelog files.
+- Replaced O(n) trailing-whitespace trim loop with single-pass index scan in ChangelogContentParser.
+- Replaced String concatenation in loop with StringBuilder in readItems().
+
+### Fixed
+- Reset dateWarning flag at start of each parseContent() call to prevent suppressed warnings on reused parser instances.
+- Added null guard before getReleaseVersion().compareTo() in validateEntryOrder() to prevent NullPointerException.
+- Removed dead unreachable branch in validateVersionExist().
+- Removed swallowed IndexOutOfBoundsException in readChangelogText() that could mask parser bugs.
+
 ## [ 1.1.2 ] - 2026-07-21
 
 ## [ 1.1.1 ] - 2026-07-21

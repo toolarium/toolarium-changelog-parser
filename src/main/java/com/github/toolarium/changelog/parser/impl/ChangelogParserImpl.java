@@ -80,6 +80,7 @@ public class ChangelogParserImpl implements IChangelogParser {
             return new ChangelogParseResult();
         }
 
+        dateWarning = false;
         ChangelogContentParser parser = new ChangelogContentParser();
         parser.init(inputContent);
 

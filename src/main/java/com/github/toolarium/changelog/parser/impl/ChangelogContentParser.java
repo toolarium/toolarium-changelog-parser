@@ -217,22 +217,22 @@ public class ChangelogContentParser {
         if (itemContent != null && !itemContent.isEmpty()) {
             String[] itemSplit = itemContent.split("" + NEWLINE);
             if (itemSplit != null) {
-                String currentItem = "";
+                StringBuilder currentItem = new StringBuilder();
                 for (int i = 0; i < itemSplit.length; i++) {
                     String item = itemSplit[i];
                     if (item.startsWith("-") || item.startsWith("*")) {
-                        if (!currentItem.isEmpty()) {
-                            result.add(currentItem);
+                        if (currentItem.length() > 0) {
+                            result.add(currentItem.toString());
                         }
 
-                        currentItem = item.substring(1).stripLeading();
+                        currentItem = new StringBuilder(item.substring(1).stripLeading());
                     } else {
-                        currentItem += NEWLINE + item;
+                        currentItem.append(NEWLINE).append(item);
                     }
                 }
 
-                if (!currentItem.isEmpty()) {
-                    result.add(currentItem);
+                if (currentItem.length() > 0) {
+                    result.add(currentItem.toString());
                 }
             }
         }
@@ -259,28 +259,27 @@ public class ChangelogContentParser {
                 text.append(result);
             }
 
-            try {
-                if (!isEOL() && currentChar() == NEWLINE) {
-                    String s = readSeparatorWithStopChars(descriptionStopChars);
-                    text.append(s);
-                } else { // separator
-                    if (!result.isEmpty()) {
-                        text.append(readSeparatorWithStopChars(descriptionStopChars));
-                    } else {
-                        end = true;
-                    }
+            if (!isEOL() && currentChar() == NEWLINE) {
+                String s = readSeparatorWithStopChars(descriptionStopChars);
+                text.append(s);
+            } else { // separator
+                if (!result.isEmpty()) {
+                    text.append(readSeparatorWithStopChars(descriptionStopChars));
+                } else {
+                    end = true;
                 }
-            } catch (IndexOutOfBoundsException e) {
-                // end of line reached
             }
         }
 
         String result = text.toString();
-        while (!result.isEmpty() && result.endsWith("" + NEWLINE)) {
-            result = result.substring(0, result.length() - 1);
+        int tail = result.length();
+        while (tail > 0 && result.charAt(tail - 1) <= ' ') {
+            tail--;
         }
-
-        return result;
+        if (tail == result.length()) {
+            return result;
+        }
+        return result.substring(0, tail);
     }
 
 

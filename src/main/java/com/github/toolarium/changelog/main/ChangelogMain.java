@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -206,11 +205,15 @@ public class ChangelogMain {
      *
      * @param url the url
      * @return the content
-     * @throws MalformedURLException In case of invalid url exception
      * @throws IOException In case of I/O errors
      */
-    protected String readContent(String url) throws MalformedURLException, IOException {
-        URL myUrl = URI.create(url).toURL();
+    protected String readContent(String url) throws IOException {
+        URL myUrl;
+        try {
+            myUrl = URI.create(url).toURL();
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URL [" + url + "]: " + e.getMessage(), e);
+        }
         HttpURLConnection conn = (HttpURLConnection) myUrl.openConnection();
         conn.setConnectTimeout(30000);
         conn.setReadTimeout(30000);
@@ -219,9 +222,13 @@ public class ChangelogMain {
              InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(isr)) {
 
+            final int maxBytes = 10 * 1024 * 1024;
             StringBuilder content = new StringBuilder();
             String inputLine;
             while ((inputLine = br.readLine()) != null) {
+                if (content.length() + inputLine.length() > maxBytes) {
+                    throw new IOException("Remote changelog exceeds maximum allowed size of 10 MB.");
+                }
                 content.append(inputLine).append("\n");
             }
 

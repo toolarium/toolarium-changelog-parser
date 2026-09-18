@@ -291,7 +291,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
             }
 
             if (version != null && i == firstIndex) {
-                if (entry.getReleaseVersion().compareTo(version) != 0) {
+                if (entry.getReleaseVersion() == null || entry.getReleaseVersion().compareTo(version) != 0) {
                     changelogErrorList.addReleaseError(entry.getReleaseVersion(), "The version [" + version + "] should be referenced as first entry.");
                 }
             }
@@ -319,9 +319,7 @@ public class ChangelogValidatorImpl implements IChangelogValidator {
         
         int found = 0;
         for (ChangelogEntry entry : entries) {
-            if (!entry.isReleased() && searchVersion == null) {
-                found++;
-            } else if (entry.getReleaseVersion() != null && entry.getReleaseVersion().equals(searchVersion)) {
+            if (entry.getReleaseVersion() != null && entry.getReleaseVersion().equals(searchVersion)) {
                 found++;
             }
         }

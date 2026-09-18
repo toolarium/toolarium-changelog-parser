@@ -12,6 +12,14 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
 
 
 /***************************************************************************************
+ * Suppress obsolete source/target compatibility warnings
+ ***************************************************************************************/
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-Xlint:-options'
+}
+
+
+/***************************************************************************************
  * define the main class name
  ***************************************************************************************/
 application {
@@ -24,6 +32,6 @@ application {
  ****************************************************************************************/
 dependencies {
     // utilities
-    implementation "com.github.toolarium:toolarium-common:1.0.0"
+    implementation "com.github.toolarium:toolarium-common:1.1.0"
     implementation "com.github.toolarium:toolarium-ansi:0.9.1"
 }
